@@ -76,8 +76,8 @@ def configure(darkphoton=None):
    pdg.AddParticle('Upsilon[3S1(8)]'   ,'Upsilon[3S1(8)]' ,9.66030,False,0.0,     0, 'Meson', 9950003)
    atexit.register(pyExit)
    if darkphoton==0: return # will be added by pythia8_conf
-   #if (darkphoton):
-   #   addDPtoROOT()
-   #else:
-   #   addHNLtoROOT()
+   if (darkphoton):
+      addDPtoROOT()
+   else:
+      addHNLtoROOT()
 
