@@ -1,12 +1,11 @@
 import math
 import os
-#from scipy import interpolate 
 import ROOT as r
 
 #from settings import *
 #from functions import *
 from hnl import mass
-#from hnl import PDGname
+from hnl import PDGname
 
 # constants
 alphaQED = 1./137.
@@ -55,9 +54,6 @@ class DarkPhoton:
 
     def interpolatePDGtable(self):
         """ Find the best value for R for the given center-of-mass energy """
-        #using scipy
-        #fun = interpolate.interp1d(dataEcm,dataR)
-        #using ROOT
         fun = r.Math.Interpolator(self.dataEcm.size(),r.Math.Interpolation.kLINEAR) #,Interpolation.kPOLYNOMIAL)
         # print 'function type:%s'%fun.Type()
         fun.SetData(self.dataEcm,self.dataR);
