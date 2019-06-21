@@ -3,8 +3,8 @@ import os
 import sys
 import re
 import six
-import numpy as np
-import scipy.interpolate
+#import numpy as np
+#import scipy.interpolate
 import ROOT
 import shipunit as u
 

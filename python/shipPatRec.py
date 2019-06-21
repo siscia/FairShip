@@ -447,6 +447,7 @@ def hit_in_bin(x, y, k_bin, b_bin, k_size, b_size):
 ##
 ########################################################################################################################
 
+# error on this import
 from scipy.optimize import minimize
 
 def artificial_retina_pattern_recognition(SmearedHits, ShipGeo):
