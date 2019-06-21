@@ -1,5 +1,5 @@
 # Global scope variables
-from ROOT import *
+from ROOT import TLatex, TPaveText, TStyle, TText, gROOT
 from ROOT import Double
 lhcbstyle = TStyle()     # general lhcb style
 lhcbName  = TPaveText()  # standard lhcb text for plot

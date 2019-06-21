@@ -82,7 +82,7 @@ from ROOT import TLorentzVector
 # ==================================================================
 #                         GEANT4 IMPORT                             #
 # ==================================================================
-from Geant4 import *
+from Geant4 import G4Color, G4Material, G4PrimaryParticle, G4PrimaryVertex, G4ThreeVector, G4TrackingManager, G4UserEventAction, G4UserRunAction, G4UserSteppingAction, G4UserTrackingAction, G4VSensitiveDetector, G4VUserPrimaryGeneratorAction, G4VisAttributes, G4physicslists, GeV, Geant4, HepRandom, Ranlux64Engine, cm, gRunManager, m, mm
 import g4py.NISTmaterials
 import g4py.ezgeom
 from g4py.ezgeom import G4EzVolume
@@ -253,7 +253,7 @@ class ScoreSD(G4VSensitiveDetector):
     G4VSensitiveDetector.__init__(self, Name)
 
   def ProcessHits(self, step, rohist):
-    preStepPoint = step.GetPreStepPoint()
+    step.GetPreStepPoint()
     track        = step.GetTrack()
     part         = track.GetDynamicParticle()
     pid          = part.GetPDGcode()
@@ -282,15 +282,15 @@ def ConstructGeom():
   snoopy   = G4EzVolume("Snoopy")
   snoopy.CreateTubeVolume(vac, 0., 10*m,  50.*m)
   snoopyPhys = snoopy.PlaceIt(G4ThreeVector(0.,0.,0.*m))
-  snoopyLog  = snoopyPhys.GetLogicalVolume()
+  snoopyPhys.GetLogicalVolume()
   snoopy.SetVisibility(False)
   # a target box is placed
   global target,targetPhys
   iron     = G4Material.GetMaterial("G4_Fe")
-  air      = G4Material.GetMaterial("G4_AIR")
+  G4Material.GetMaterial("G4_AIR")
   tungsten = G4Material.GetMaterial("G4_W")
-  lead     = G4Material.GetMaterial("G4_Pb")
-  alum     = G4Material.GetMaterial("G4_Al")
+  G4Material.GetMaterial("G4_Pb")
+  G4Material.GetMaterial("G4_Al")
   target   = G4EzVolume("Target")
   target.CreateTubeVolume(tungsten, 0., 25.*cm,     25.*cm)
   targetPhys = target.PlaceIt(G4ThreeVector(0.,0.,-50.*m+25.*cm),1,snoopy)

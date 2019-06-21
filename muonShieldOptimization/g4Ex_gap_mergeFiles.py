@@ -11,7 +11,7 @@ Tau      = False
 import ROOT,os
 from array import array
 from ROOT import TDatabasePDG,TMath,gDirectory
-from rootUtils import *
+from rootUtils import gROOT
 pdg  = TDatabasePDG()
 mu   = pdg.GetParticle(13)
 Mmu  = mu.Mass()
@@ -150,7 +150,7 @@ def makeFinalNtuples(norm=5.E13,opt=''):
     t.SetEventList(temp) 
     nev    = temp.GetN()
     for iev in range(nev) :
-     rc = t.GetEntry(temp.GetEntry(iev))
+     t.GetEntry(temp.GetEntry(iev))
      leaves = t.GetListOfLeaves()
      vlist = array('f')
      for x in range(leaves.GetEntries()):
