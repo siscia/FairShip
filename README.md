@@ -2,6 +2,8 @@
 
 ## Introduction
 
+
+
 FairShip is the software framework for the SHiP experiment which is based on
 FairRoot. The dependencies of FairShip are tracked and installed using
 [alibuild](https://alisw.github.io/alibuild/).
@@ -24,6 +26,9 @@ Additionally for developers:
     ```bash
     export SHIPBUILD=/cvmfs/ship.cern.ch/SHiPBuild
     ```    
+
+
+
 
 1. Install FairShip
     ```bash
