@@ -11,13 +11,13 @@ build-cc7:
     - cd ..
     - git clone https://github.com/siscia/shipdist
     - pushd shipdist && git checkout simple_build && popd
-    - pwd
     - env
   script:
     - aliBuild -c shipdist/ --default fairship build FairShip --always-prefer-system --debug
+    - env
   artifacts:
     paths:
-      - $PWD/sw
+      - $WORK_DIR
     expire_in: 1 week
 
 test-cc7:
