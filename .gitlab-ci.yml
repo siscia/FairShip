@@ -17,7 +17,7 @@ build-cc7:
     - aliBuild -c shipdist/ --default fairship build FairShip --always-prefer-system --debug
   artifacts:
     paths:
-      - $HOME/sw
+      - $PWD/sw
     expire_in: 1 week
 
 test-cc7:
