@@ -15,7 +15,7 @@ build-cc7:
     - aliBuild -c shipdist/ --default fairship build FairShip --always-prefer-system --debug
   artifacts:
     paths:
-      - sw/
+      - $HOME/sw
     expire_in: 1 week
 
 test-cc7:
@@ -33,6 +33,6 @@ test-cc7:
     - python -i $FAIRSHIP/macro/ShipAna.py -f ship.conical.Pythia8-TGeant4_rec.root -g geofile_full.conical.Pythia8-TGeant4.root
   artifacts:
     paths:
-      - sw/
+      - sw
     expire_in: 1 week
 
