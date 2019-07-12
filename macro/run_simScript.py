@@ -589,13 +589,18 @@ parOut.open(parFile)
 rtdb.setOutput(parOut)
 rtdb.saveOutput()
 rtdb.printParamContexts()
+print '<<<<>>>> 1'
 getattr(rtdb,"print")()
 # ------------------------------------------------------------------------
+print '<<<<>>>> 2'
 run.CreateGeometryFile("%s/geofile_full.%s.root" % (outputDir, tag))
+print '<<<<>>>> 3'
 # save ShipGeo dictionary in geofile
 import saveBasicParameters
+print '<<<<>>>> 4'
 saveBasicParameters.execute("%s/geofile_full.%s.root" % (outputDir, tag),ship_geo)
 
+print '<<<<>>>> 5'
 # checking for overlaps
 if checking4overlaps:
  fGeo = ROOT.gGeoManager
