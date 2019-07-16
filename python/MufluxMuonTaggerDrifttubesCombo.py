@@ -1,3 +1,4 @@
+from __future__ import print_function
 __author__ = 'Mikhail Hushchyn'
 
 import numpy as np
@@ -14,11 +15,11 @@ def execute(muon_tagger_track_hits, drifttubes_track_hits, debug=0):
     track_hits = {}
     i_track = 0
     
-    for i_muon_tagger_track in muon_tagger_track_hits.keys():
+    for i_muon_tagger_track in list(muon_tagger_track_hits.keys()):
     
         one_muon_tagger_track = muon_tagger_track_hits[i_muon_tagger_track]
         
-        for i_drifttubes_track in drifttubes_track_hits.keys():
+        for i_drifttubes_track in list(drifttubes_track_hits.keys()):
             
             one_drifttubes_track = drifttubes_track_hits[i_drifttubes_track]
             
@@ -34,9 +35,9 @@ def execute(muon_tagger_track_hits, drifttubes_track_hits, debug=0):
                 i_track += 1
             
             if debug:
-                print 'rmse: ', rmse
-                print 'i_muon_tagger_track: ', i_muon_tagger_track
-                print 'i_drifttubes_track: ', i_drifttubes_track
+                print('rmse: ', rmse)
+                print('i_muon_tagger_track: ', i_muon_tagger_track)
+                print('i_drifttubes_track: ', i_drifttubes_track)
             
     
     return track_hits
@@ -66,8 +67,8 @@ def linear_fit_in_zx_plane(muon_tagger_track, drifttubes_track, debug):
         x_coords.append(ahit['xtop'])
         
     if debug:
-        print 'z_coords:', z_coords
-        print 'x_coords:', x_coords
+        print('z_coords:', z_coords)
+        print('x_coords:', x_coords)
         
     # Fit linear regression model
     reg = LinearRegression()

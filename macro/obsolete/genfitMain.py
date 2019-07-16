@@ -1,5 +1,9 @@
+from __future__ import division
+from __future__ import print_function
 # setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/media/ShipSoft/genfit-build/lib
 #-----prepare python exit-----------------------------------------------
+from builtins import range
+from past.utils import old_div
 def pyExit():
  global fitter
  del fitter
@@ -41,7 +45,7 @@ for iEvent in range(0, 100):
  mom.SetMag(ROOT.gRandom.Uniform(0.2, 1.))
 # helix track model
  pdg = 13 # particle pdg code
- charge = PDG.GetParticle(pdg).Charge()/(3.)
+ charge = old_div(PDG.GetParticle(pdg).Charge(),(3.))
  helix = ROOT.genfit.HelixTrackModel(pos, mom, charge)
  ROOT.SetOwnership( helix, False )
  measurementCreator.setTrackModel(helix)
@@ -64,7 +68,7 @@ for iEvent in range(0, 100):
  covM = ROOT.TMatrixDSym(6)
  resolution = 0.01
  for  i in range(3):   covM[i][i] = resolution*resolution
- for  i in range(3,6): covM[i][i] = ROOT.TMath.pow(resolution / nMeasurements / ROOT.TMath.sqrt(3), 2)
+ for  i in range(3,6): covM[i][i] = ROOT.TMath.pow(old_div(resolution, nMeasurements / ROOT.TMath.sqrt(3)), 2)
 # trackrep
  rep = ROOT.genfit.RKTrackRep(pdg)
 # smeared start state
@@ -88,16 +92,16 @@ for iEvent in range(0, 100):
     measurements = measurementCreator.create(measurementTypes[i], i*5.)
     fitTrack.insertPoint(ROOT.genfit.TrackPoint(measurements,fitTrack))
   except:
-   print "Exception, next track", e.what()
+   print("Exception, next track", e.what())
 
 #check
   if not fitTrack.checkConsistency():
-   print 'Problem with track before fit, not consistent',fitTrack
+   print('Problem with track before fit, not consistent',fitTrack)
 # do the fit
   fitter.processTrack(fitTrack)
 #check
   if not fitTrack.checkConsistency():
-   print 'Problem with track after fit, not consistent',fitTrack
+   print('Problem with track after fit, not consistent',fitTrack)
   if (iEvent < 1000):
 # add track to event display
    display.addEvent(fitTrack)

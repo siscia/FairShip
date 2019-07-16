@@ -1,3 +1,8 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import os,ROOT
 import rootUtils as ut
 path =  '/eos/experiment/ship/data/Mbias/background-prod-2018/'
@@ -7,7 +12,7 @@ path =  '/eos/experiment/ship/data/Mbias/background-prod-2018/'
 muSources = {'eta':221,'omega':223,'phi':333,'rho0':113,'eta_prime':331}
 charmExtern = [4332,4232,4132,4232,4122,431,411,421]
 
-muSourcesIDs = muSources.values()
+muSourcesIDs = list(muSources.values())
 
 # for 10GeV Yandex Production 65.041 Billion PoT, weight = 768.75 for 5E13 pot
 weightMbias = 768.75
@@ -67,7 +72,7 @@ def PoT(f):
      xSecboost+=float(txt[i+1:].split(' ')[0])
  diMuboost=diMuboost/float(ncycles) 
  xSecboost=xSecboost/float(ncycles) 
- print "POT = ",nTot," number of events:",f.cbmsim.GetEntries(),' diMuboost=',diMuboost,' XsecBoost=',xSecboost
+ print("POT = ",nTot," number of events:",f.cbmsim.GetEntries(),' diMuboost=',diMuboost,' XsecBoost=',xSecboost)
  return nTot,diMuboost,xSecboost
 
 def TotStat():
@@ -77,7 +82,7 @@ def TotStat():
   f=ROOT.TFile(path+fn)
   nPot,diMuboost,xSecboost = PoT(f)
   ntot += nPot
- print "Total statistics so far",ntot/1.E9," billion" 
+ print("Total statistics so far",old_div(ntot,1.E9)," billion") 
 
 def processFile(fin,noCharm=True):
     f   = ROOT.TFile.Open(os.environ['EOSSHIP']+path+fin)
@@ -112,7 +117,7 @@ def run():
      fmu = tmp.replace('XX',str(run)+"_mu")
      rc = os.system("xrdcp "+fmu+" $EOSSHIP/eos/experiment/ship/data/Mbias/background-prod-2018/"+fmu)
      if rc != 0: 
-      print "copy to EOS failed, stop",fmu
+      print("copy to EOS failed, stop",fmu)
      else:
       rc = os.system("rm "+fmu)
 
@@ -130,7 +135,7 @@ def run4Charm():
      fmu = fname.replace('.root',"_mu.root")
      rc = os.system("xrdcp "+fmu+" $EOSSHIP/eos/experiment/ship/data/Mbias/background-prod-2018/"+fmu)
      if rc != 0: 
-      print "copy to EOS failed, stop",fmu
+      print("copy to EOS failed, stop",fmu)
      else:
       rc = os.system("rm "+fmu)
 
@@ -143,7 +148,7 @@ def run4beauty():
      fmu = fname.replace('.root',"_mu.root")
      rc = os.system("xrdcp "+fmu+" $EOSSHIP/eos/experiment/ship/data/Mbias/background-prod-2018/"+fmu)
      if rc != 0: 
-      print "copy to EOS failed, stop",fmu
+      print("copy to EOS failed, stop",fmu)
      else:
       rc = os.system("rm "+fmu)
 
@@ -188,7 +193,7 @@ def mergeMbiasAndCharm(flavour="charm"):
   Nall += nEntries[x]
  nCharm = 0
  frac = nEntries[flavour]/float(Nall)
- print "debug",frac
+ print("debug",frac)
  os.system('xrdcp '+pp +allFiles[flavour] +' '+allFiles[flavour])
  for k in allFiles:
   if k==flavour: continue
@@ -224,16 +229,16 @@ def mergeMbiasAndCharm(flavour="charm"):
   # chain.SetEntryList(randomList) 
   # nev = randomList.GetN()
   nev = len(myList)
-  print "start:",outFile,nev
+  print("start:",outFile,nev)
   for iev in range(nev) :
      rc =sTree.GetEntry(myList[iev])
      rc = newTree.Fill()
      if (iev)%100000==0:
        timer.Stop()
-       print "status:",timer.RealTime(),k,iev
+       print("status:",timer.RealTime(),k,iev)
        timer.Start()
   newTree.AutoSave()
-  print "finished one file",outFile,nMbias,nCharm
+  print("finished one file",outFile,nMbias,nCharm)
   if flavour=="charm": 
    ff = f.FileHeader.Clone('With Charm Merged Muon Background File')
   else: 
@@ -245,7 +250,7 @@ def mergeMbiasAndCharm(flavour="charm"):
   f.Close()
   rc = os.system("xrdcp "+outFile+" $EOSSHIP/eos/experiment/ship/data/Mbias/background-prod-2018/"+outFile)
   if rc != 0: 
-      print "copy to EOS failed",outFile
+      print("copy to EOS failed",outFile)
   else:
       rc = os.system("rm "+outFile)
 
@@ -261,7 +266,7 @@ def testRatio(fname):
     if pdgID in charmExtern:
         charm+=1
         break
- print "charm found",charm," ratio ",charm/float(Nall)
+ print("charm found",charm," ratio ",charm/float(Nall))
  
 
 

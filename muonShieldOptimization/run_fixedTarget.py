@@ -1,4 +1,7 @@
 #!/usr/bin/env python 
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import ROOT
 import os
 import shipRoot_conf
@@ -221,7 +224,7 @@ P8gen.SetSeed(args.seed)
 #        print ' for experts: p pot= number of protons on target per spill to normalize on'
 #        print '            : c chicc= ccbar over mbias cross section'
 if charm or beauty:
- print "--- process heavy flavours ---"
+ print("--- process heavy flavours ---")
  P8gen.InitForCharmOrBeauty(charmInputFile,nev,npot,nStart)
 primGen.AddGenerator(P8gen)
 #
@@ -255,10 +258,10 @@ run.Run(nev)
 timer.Stop()
 rtime = timer.RealTime()
 ctime = timer.CpuTime()
-print ' ' 
-print "Macro finished succesfully." 
-print "Output file is ",  outFile 
-print "Real time ",rtime, " s, CPU time ",ctime,"s"
+print(' ') 
+print("Macro finished succesfully.") 
+print("Output file is ",  outFile) 
+print("Real time ",rtime, " s, CPU time ",ctime,"s")
 # ---post processing--- remove empty events --- save histograms
 tmpFile = outFile+"tmp"
 if ROOT.gROOT.GetListOfFiles().GetEntries()>0:
@@ -283,7 +286,7 @@ if boostFactor > 1: conditions+=" X"+str(boostFactor)
 
 info += conditions
 fHeader.SetTitle(info)
-print "Data generated ", fHeader.GetTitle()
+print("Data generated ", fHeader.GetTitle())
 
 nt = fin.Get('4DP')
 if nt:
@@ -321,10 +324,10 @@ fout.Close()
 
 rc1 = os.system("rm  "+outFile)
 rc2 = os.system("mv "+tmpFile+" "+outFile)
-print "removed out file, moved tmpFile to out file",rc1,rc2
+print("removed out file, moved tmpFile to out file",rc1,rc2)
 fin.SetWritable(False) # bpyass flush error
 
-print "Number of events produced with activity after hadron absorber:",nEvents
+print("Number of events produced with activity after hadron absorber:",nEvents)
 
 if checkOverlap:
  sGeo = ROOT.gGeoManager

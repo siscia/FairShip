@@ -1,4 +1,9 @@
 #!/usr/bin/env python 
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import ROOT
 import shipRoot_conf
 import sys
@@ -98,7 +103,7 @@ def run():
  fStack.SetEnergyCut(-1.)
 
 # -----Start run----------------------------------------------------
- print "run for ",nev,"events"
+ print("run for ",nev,"events")
  run.Run(nev)
 
 # -----Start Analysis---------------
@@ -110,10 +115,10 @@ def run():
  timer.Stop()
  rtime = timer.RealTime()
  ctime = timer.CpuTime()
- print ' ' 
- print "Macro finished succesfully." 
- print "Output file is ",  outFile 
- print "Real time ",rtime, " s, CPU time ",ctime,"s"
+ print(' ') 
+ print("Macro finished succesfully.") 
+ print("Output file is ",  outFile) 
+ print("Real time ",rtime, " s, CPU time ",ctime,"s")
 
 def makePlot(f,book=True):
 # print interaction and radiation length of target
@@ -122,11 +127,11 @@ def makePlot(f,book=True):
   v = sGeo.FindVolumeFast('target')
   m = v.GetMaterial()
   length = v.GetShape().GetDZ()*2
-  print "Material:",m.GetName(),'total interaction length=',length/m.GetIntLen(),'total rad length=',length/m.GetRadLen()
+  print("Material:",m.GetName(),'total interaction length=',old_div(length,m.GetIntLen()),'total rad length=',old_div(length,m.GetRadLen()))
  else:
   density= 2.413
   length= 125.0
-  print "Use predefined values:",density,length
+  print("Use predefined values:",density,length)
  if book:
   ut.bookHist(h,'theta','scattering angle '+str(momentum)+'GeV/c;{Theta}(rad)',500,0,maxTheta)
   ut.bookHist(h,'eloss','rel energy loss as function of momentum GeV/c',100,0,maxTheta,10000,0.,1.)
@@ -139,8 +144,8 @@ def makePlot(f,book=True):
   Eloss = 0
   for aHit in sTree.vetoPoint: 
     Eloss+=aHit.GetEnergyLoss()
-    print Ein,Eloss/Ein
-  h['eloss'].Fill(Ein,Eloss/Ein)
+    print(Ein,old_div(Eloss,Ein))
+  h['eloss'].Fill(Ein,old_div(Eloss,Ein))
   h['elossRaw'].Fill(Ein,Eloss)
  ut.bookCanvas(h,key=s,title=s,nx=900,ny=600,cx=1,cy=1)
  tc = h[s].cd(1)
@@ -156,7 +161,7 @@ def makePlot(f,book=True):
   for n in range(1,h['elossRaw'].GetNbinsX()+1):
     tmp = h['elossRaw'].ProjectionY('tmp',n,n)
     eloss = tmp.GetMean()
-    h['meanEloss'].SetBinContent(n,eloss/density/length*1000)
+    h['meanEloss'].SetBinContent(n,old_div(eloss,density/length*1000))
   h['meanEloss'].SetTitle('mean energy loss MeV cm2 / g')
   h['meanEloss'].Draw()
  elif s=="ATLAS":
@@ -166,11 +171,11 @@ def makePlot(f,book=True):
   N = float(h['>eloss'].GetEntries())
   for n in range(h['>eloss'].GetNbinsX(),0,-1):
     cum+=h['>eloss'].GetBinContent(n)
-    h['>eloss'].SetBinContent(n,cum/N)
-  print "Ethreshold   event fraction in %"
+    h['>eloss'].SetBinContent(n,old_div(cum,N))
+  print("Ethreshold   event fraction in %")
   for E in [15.,20.,30.,50.,80.]:
     n = h['>eloss'].FindBin(E/350.)
-    print " %5.0F   %5.2F "%(E,h['>eloss'].GetBinContent(n)*100)
+    print(" %5.0F   %5.2F "%(E,h['>eloss'].GetBinContent(n)*100))
  else:
   tc.SetLogy(1)
   h['theta_100']=h['theta'].Clone('theta_100')
@@ -216,7 +221,7 @@ def makeSummaryPlot():
  Gpdg = h['Gpdg']
  Gpdg.SetMarkerColor(ROOT.kRed)
  Gpdg.SetMarkerStyle(20)
- keys = pdg.keys()
+ keys = list(pdg.keys())
  keys.sort()
  for n in range(len(keys)):
   Gpdg.SetPoint(n,keys[n],pdg[keys[n]])
@@ -258,7 +263,7 @@ def makeSummaryPlot():
  for n in range(1,h['elossRaw'].GetNbinsX()+1):
     tmp = h['elossRaw'].ProjectionY('tmp',n,n)
     eloss = tmp.GetMean()
-    h['meanEloss'].SetBinContent(n,eloss/density/length*1000)
+    h['meanEloss'].SetBinContent(n,old_div(eloss,density/length*1000))
     h['meanEloss'].SetBinError(n,0)
  h['meanEloss'].SetTitle('mean energy loss MeV cm^{2}/g')
  h['meanEloss'].SetStats(0)

@@ -1,5 +1,13 @@
+from __future__ import division
+from __future__ import print_function
 # Mikhail Hushchyn, mikhail.hushchyn@cern.ch
 
+from past.builtins import cmp
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import ROOT
 import numpy
 
@@ -12,7 +20,7 @@ from rootpyPickler import Unpickler
 
 # For modules
 import shipDet_conf
-import __builtin__ as builtin
+import builtins as builtin
 # import TrackExtrapolateTool
 
 # For track pattern recognition
@@ -46,7 +54,7 @@ def run_track_pattern_recognition(input_file, geo_file, output_file, method):
     try:
         fgeo = ROOT.TFile(geo_file)
     except:
-        print "An error with opening the ship geo file."
+        print("An error with opening the ship geo file.")
         raise
 
     sGeo = fgeo.FAIRGeom
@@ -94,7 +102,7 @@ def run_track_pattern_recognition(input_file, geo_file, output_file, method):
     if hasattr(ShipGeo.Bfield,"fieldMap"):
       fieldMaker = geomGeant4.addVMCFields(ShipGeo, '', True, withVirtualMC = False)
     else:
-      print "no fieldmap given, geofile too old, not anymore support"
+      print("no fieldmap given, geofile too old, not anymore support")
       exit(-1)
     sGeo   = fgeo.FAIRGeom
     geoMat =  ROOT.genfit.TGeoMaterialInterface()
@@ -111,7 +119,7 @@ def run_track_pattern_recognition(input_file, geo_file, output_file, method):
     try:
         fn = ROOT.TFile(input_file,'update')
     except:
-        print "An error with opening the input data file."
+        print("An error with opening the input data file.")
         raise
 
     sTree = fn.cbmsim
@@ -144,7 +152,7 @@ def run_track_pattern_recognition(input_file, geo_file, output_file, method):
     for iEvent in range(nEvents):
 
         if iEvent%1000 == 0:
-            print 'Event ', iEvent
+            print('Event ', iEvent)
 
         ########################################### Select one event ###################################################
 
@@ -211,7 +219,7 @@ def run_track_pattern_recognition(input_file, geo_file, output_file, method):
                 hits['Pdg'] += [ahit.PdgCode()]
                 
             # List to numpy arrays
-            for key in hits.keys():
+            for key in list(hits.keys()):
                 hits[key] = numpy.array(hits[key])
                 
             # Decoding
@@ -355,7 +363,7 @@ def run_track_pattern_recognition(input_file, geo_file, output_file, method):
             X = X - X[0]
             Y = Y - Y[0]
             R = numpy.sqrt(X**2 + Y**2 + Z**2)
-            Theta = numpy.arccos(Z[1:] / R[1:])
+            Theta = numpy.arccos(old_div(Z[1:], R[1:]))
             theta = numpy.mean(Theta)
             
             metrics['reco_mc_theta'] += [theta]
@@ -401,7 +409,7 @@ def run_track_pattern_recognition(input_file, geo_file, output_file, method):
 
             nmeas = fitStatus.getNdf()
             pval = fitStatus.getPVal()
-            chi2 = fitStatus.getChi2() / nmeas
+            chi2 = old_div(fitStatus.getChi2(), nmeas)
             
             metrics['fitted_pval'] += [pval]
             metrics['fitted_chi'] += [chi2]
@@ -422,21 +430,21 @@ def run_track_pattern_recognition(input_file, geo_file, output_file, method):
 
 
                 metrics['fitted_p'] += [p_fit]
-                perr = (p - p_fit) / p
+                perr = old_div((p - p_fit), p)
                 h['ptrue-p/ptrue'].Fill(perr)
                 h['perr'].Fill(p, perr)
                 h['perr_direction'].Fill(numpy.rad2deg(theta), perr)
 
-                pterr = (pt - pt_fit) / pt
+                pterr = old_div((pt - pt_fit), pt)
                 h['pttrue-pt/pttrue'].Fill(pterr)
 
-                pxerr = (px - px_fit) / px
+                pxerr = old_div((px - px_fit), px)
                 h['pxtrue-px/pxtrue'].Fill(pxerr)
 
-                pyerr = (py - py_fit) / py
+                pyerr = old_div((py - py_fit), py)
                 h['pytrue-py/pytrue'].Fill(pyerr)
 
-                pzerr = (pz - pz_fit) / pz
+                pzerr = old_div((pz - pz_fit), pz)
                 h['pztrue-pz/pztrue'].Fill(pzerr)
 
                 if math.fabs(p) > 0.0 :
@@ -481,7 +489,7 @@ def run_track_pattern_recognition(input_file, geo_file, output_file, method):
 
 
             except:
-                print "Problem with fitted state."
+                print("Problem with fitted state.")
 
 
         h['Reco_tracks'].Fill("N total", n_tracks)
@@ -527,11 +535,11 @@ def extrapolateToPlane(fT,z):
                 pos,mom = state.getPos(),state.getMom()
                 rc = True
             except:
-                print 'error with extrapolation'
+                print('error with extrapolation')
             if not rc:
                 # use linear extrapolation
                 px,py,pz  = mom.X(),mom.Y(),mom.Z()
-                lam = (z-pos.Z())/pz
+                lam = old_div((z-pos.Z()),pz)
                 pos = ROOT.TVector3( pos.X()+lam*px, pos.Y()+lam*py, z )
     return rc,pos,mom
 
@@ -587,7 +595,7 @@ def fracMCsame(trackids):
     nh=len(trackids)
     
     for tid in trackids:
-        if track.has_key(tid):
+        if tid in track:
             track[tid] += 1
         else:
             track[tid] = 1
@@ -628,14 +636,14 @@ def getReconstructibleTracks(iEvent, sTree, sGeo, ShipGeo):
     """
 
     VetoStationZ = ShipGeo.vetoStation.z
-    VetoStationEndZ = VetoStationZ + (ShipGeo.strawtubes.DeltazView + ShipGeo.strawtubes.OuterStrawDiameter) / 2
+    VetoStationEndZ = VetoStationZ + old_div((ShipGeo.strawtubes.DeltazView + ShipGeo.strawtubes.OuterStrawDiameter), 2)
 
     TStationz = ShipGeo.TrackStation1.z
     Zpos = TStationz - 3. /2. * ShipGeo.strawtubes.DeltazView - 1. / 2. * ShipGeo.strawtubes.DeltazPlane - 1. / 2. * ShipGeo.strawtubes.DeltazLayer
-    TStation1StartZ = Zpos - ShipGeo.strawtubes.OuterStrawDiameter / 2
+    TStation1StartZ = Zpos - old_div(ShipGeo.strawtubes.OuterStrawDiameter, 2)
 
     Zpos = TStationz + 3. /2. * ShipGeo.strawtubes.DeltazView + 1. / 2. * ShipGeo.strawtubes.DeltazPlane + 1. / 2. * ShipGeo.strawtubes.DeltazLayer
-    TStation4EndZ = Zpos + ShipGeo.strawtubes.OuterStrawDiameter / 2
+    TStation4EndZ = Zpos + old_div(ShipGeo.strawtubes.OuterStrawDiameter, 2)
 
 
     ROOT.TDatabasePDG.Instance()
@@ -648,7 +656,7 @@ def getReconstructibleTracks(iEvent, sTree, sGeo, ShipGeo):
 
     
     #1. MCTrackIDs: list of tracks decaying after the last tstation and originating before the first
-    for i in reversed(range(nMCTracks)):
+    for i in reversed(list(range(nMCTracks))):
         atrack = sTree.MCTrack.At(i)
         #track endpoint after tstations?
         if atrack.GetStartZ() > TStation4EndZ :
@@ -703,7 +711,7 @@ def getReconstructibleTracks(iEvent, sTree, sGeo, ShipGeo):
             continue
         strawname = str(ahit.GetDetectorID())
 
-        if hitstraws.has_key(strawname):
+        if strawname in hitstraws:
             #straw was already hit
             if ahit.GetX() > hitstraws[strawname][1]:
                 #this hit has higher x, discard it
@@ -742,25 +750,25 @@ def getReconstructibleTracks(iEvent, sTree, sGeo, ShipGeo):
             
         #group hits per tracking station, key = trackid
         if str(ahit.GetDetectorID())[:1]=="1" :
-            if hits1.has_key(ahit.GetTrackID()):
+            if ahit.GetTrackID() in hits1:
                 hits1[ahit.GetTrackID()] = [hits1[ahit.GetTrackID()][0], i]
             else:
                 hits1[ahit.GetTrackID()] = [i]
         
         if str(ahit.GetDetectorID())[:1]=="2" :
-            if hits2.has_key(ahit.GetTrackID()):
+            if ahit.GetTrackID() in hits2:
                 hits2[ahit.GetTrackID()] = [hits2[ahit.GetTrackID()][0], i]
             else:
                 hits2[ahit.GetTrackID()] = [i]
         
         if str(ahit.GetDetectorID())[:1]=="3" :
-            if hits3.has_key(ahit.GetTrackID()):
+            if ahit.GetTrackID() in hits3:
                 hits3[ahit.GetTrackID()] = [hits3[ahit.GetTrackID()][0], i]
             else:
                 hits3[ahit.GetTrackID()] = [i]
         
         if str(ahit.GetDetectorID())[:1]=="4" :
-            if hits4.has_key(ahit.GetTrackID()):
+            if ahit.GetTrackID() in hits4:
                 hits4[ahit.GetTrackID()] = [hits4[ahit.GetTrackID()][0], i]
             else:
                 hits4[ahit.GetTrackID()] = [i]
@@ -770,23 +778,23 @@ def getReconstructibleTracks(iEvent, sTree, sGeo, ShipGeo):
     #6. Make list of tracks with hits in in station 1,2,3 & 4
     tracks_with_hits_in_all_stations = []
     
-    for key in hits1.keys():
-        if (hits2.has_key(key) and hits3.has_key(key) ) and hits4.has_key(key):
+    for key in list(hits1.keys()):
+        if (key in hits2 and key in hits3 ) and key in hits4:
             if key not in tracks_with_hits_in_all_stations and key not in trackoutsidestations:
                 tracks_with_hits_in_all_stations.append(key)
     
-    for key in hits2.keys():
-        if (hits1.has_key(key) and hits3.has_key(key) ) and hits4.has_key(key):
+    for key in list(hits2.keys()):
+        if (key in hits1 and key in hits3 ) and key in hits4:
             if key not in tracks_with_hits_in_all_stations and key not in trackoutsidestations:
                 tracks_with_hits_in_all_stations.append(key)
     
-    for key in hits3.keys():
-        if ( hits2.has_key(key) and hits1.has_key(key) ) and hits4.has_key(key):
+    for key in list(hits3.keys()):
+        if ( key in hits2 and key in hits1 ) and key in hits4:
             if key not in tracks_with_hits_in_all_stations and key not in trackoutsidestations:
                 tracks_with_hits_in_all_stations.append(key)
     
-    for key in hits4.keys():
-        if (hits2.has_key(key) and hits3.has_key(key)) and hits1.has_key(key):
+    for key in list(hits4.keys()):
+        if (key in hits2 and key in hits3) and key in hits1:
             if key not in tracks_with_hits_in_all_stations and key not in trackoutsidestations:
                 tracks_with_hits_in_all_stations.append(key)
 
@@ -1043,15 +1051,15 @@ try:
     opts, args = getopt.getopt(argv, "hm:f:g:o:",
                                    ["help", "method=", "input=", "geo=", "output="])
 except getopt.GetoptError:
-    print "Wrong options were used. Please, read the following help:\n"
-    print msg
+    print("Wrong options were used. Please, read the following help:\n")
+    print(msg)
     sys.exit(2)
 if len(argv) == 0:
-    print msg
+    print(msg)
     sys.exit(2)
 for opt, arg in opts:
     if opt in ('-h', "--help"):
-        print msg
+        print(msg)
         sys.exit()
     elif opt in ("-m", "--method"):
         method = arg

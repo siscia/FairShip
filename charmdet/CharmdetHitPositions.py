@@ -1,8 +1,14 @@
+from __future__ import division
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from past.utils import old_div
 import ROOT,os
 #ROOT.gROOT.ProcessLine('typedef std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::vector<MufluxSpectrometerHit*>>>> nestedList;')
 import numpy
 from decorators import *
-import __builtin__ as builtin
+import builtins as builtin
 ROOT.gStyle.SetPalette(ROOT.kGreenPink)
 PDG = ROOT.TDatabasePDG.Instance()
 # -----Timer--------------------------------------------------------
@@ -57,12 +63,12 @@ if options.updateFile:
  f=ROOT.TFile(fname,'update')
  sTree=f.Get('cbmsim')
  if not sTree: 
-   print "Problem with updateFile",f
+   print("Problem with updateFile",f)
    exit(-1)
 else:
  sTree = ROOT.TChain('cbmsim')
  for f in fnames: 
-  print "add ",f
+  print("add ",f)
   if options.onEOS: sTree.Add(os.environ['EOSSHIP']+f)
   else:             sTree.Add(f)
 
@@ -230,8 +236,8 @@ def loadRPCtracks(n=1,draw=True,writentuple=False,fittedtracks=False):
 
   for hit in trackhits:
     detID = hit.GetDetectorID()
-    station = int (detID/10000) #automatically an int in python2, but calling the conversion avoids confusion
-    view = int((detID-station*10000)/1000)
+    station = int (old_div(detID,10000)) #automatically an int in python2, but calling the conversion avoids confusion
+    view = int(old_div((detID-station*10000),1000))
 
     a,b = RPCPositionsBotTop[detID]
     x = (a[0]+b[0])/2.
@@ -265,7 +271,7 @@ def loadRPCtracks(n=1,draw=True,writentuple=False,fittedtracks=False):
   #print "Line equation along horizontal: {}*z + {}".format(mH,bH)
   #print "Line equation along vertical: {}*z + {}".format(mV,bV)
    theta = ROOT.TMath.ATan(pow((mH**2+mV**2),0.5))
-   phi = ROOT.TMath.ATan(mH/mV)
+   phi = ROOT.TMath.ATan(old_div(mH,mV))
   #print "Angles of 3D track: theta is {} and phi is {}".format(theta,phi)  
     
    lastpoint = ROOT.TVector3(hitx[4],hity[4],hitz[4])
@@ -327,7 +333,7 @@ RPCPosition()
 def writeNtuples():
   """write positions of subdetectors into an easy to read ntuple. DetectorID go downstream to upstream, 1: Pixel, 2:SciFi, 3:DT,4:RPC"""
   nevents = sTree.GetEntries()
-  print "Start processing", nevents, "nevents"
+  print("Start processing", nevents, "nevents")
   for ievent in range(sTree.GetEntries()):
    loadRPCtracks(ievent, False, True)
    GetPixelPositions(ievent, False, True)

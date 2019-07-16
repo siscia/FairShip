@@ -1,3 +1,8 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import ROOT
 import sys
 import time
@@ -66,7 +71,7 @@ if muonIn.find('Concrete')<0:
 
 # stop pythia printout during loop
 myPythia.SetMSTU(11, 11)
-print "start production ",nStart,nEnd
+print("start production ",nStart,nEnd)
 nMade = 0
 for k in range(nStart,nEnd): 
   rc = sTree.GetEvent(k)
@@ -77,7 +82,7 @@ for k in range(nStart,nEnd):
   p = ROOT.TMath.Sqrt(px*px+py*py+pz*pz)
   E = ROOT.TMath.Sqrt(getMasssq(pid)+p*p)
   # px=p*sin(theta)cos(phi),py=p*sin(theta)sin(phi),pz=p*cos(theta)
-  theta = ROOT.TMath.ACos(pz/p)
+  theta = ROOT.TMath.ACos(old_div(pz,p))
   phi   = ROOT.TMath.ATan2(py,px) 
   ctheta,stheta = ROOT.TMath.Cos(theta),ROOT.TMath.Sin(theta)
   cphi,sphi     = ROOT.TMath.Cos(phi),ROOT.TMath.Sin(phi)
@@ -103,9 +108,9 @@ for k in range(nStart,nEnd):
       if dPart.GetSize() == nPart: dPart.Expand(nPart+10)
       dPart[nPart] = part
      nMade+=1
-     if nMade%10000==0: print 'made so far ',nMade
+     if nMade%10000==0: print('made so far ',nMade)
      dTree.Fill()
 fout.cd()  
 dTree.Write()
 myPythia.SetMSTU(11, 6)
-print "created nJob ",nJob,':',nStart,' - ',nEnd," events"
+print("created nJob ",nJob,':',nStart,' - ',nEnd," events")

@@ -1,4 +1,8 @@
 #!/usr/bin/env python 
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from past.utils import old_div
 import ROOT
 import os
 import shipunit as u
@@ -31,17 +35,17 @@ work_dir = args.work_dir
 target = args.target
 seed = args.seed
 
-print 'Target type: ', target
-print 'Seed used in this generation: ', seed
-print 'Splines file used', xsec 
+print('Target type: ', target)
+print('Seed used in this generation: ', seed)
+print('Splines file used', xsec) 
 
 if target == 'iron':
  targetcode = '1000260560'
 elif target == 'lead':
  targetcode = '1000822040[0.014],1000822060[0.241],1000822070[0.221],1000822080[0.524]'
 else:
- print 'only iron and lead target available'
- 1/0
+ print('only iron and lead target available')
+ old_div(1,0)
 
 pdg  = ROOT.TDatabasePDG()
 pDict = {}
@@ -54,13 +58,13 @@ for x in [14,12]:
  sDict[-x] = pdg.GetParticle(-x).GetName()
  pDict[x]  = "10"+str(x)
  pDict[-x] = "20"+str(x)
- nuOverNubar[x] = f.Get(pDict[x]).GetSumOfWeights()/f.Get(pDict[-x]).GetSumOfWeights()
+ nuOverNubar[x] = old_div(f.Get(pDict[x]).GetSumOfWeights(),f.Get(pDict[-x]).GetSumOfWeights())
 f.Close()
 
 work_dir = args.work_dir 
 
 if os.path.exists(work_dir): #if the directory is already there, leave a warning, otherwise create it
-    print 'output directory already exists.'
+    print('output directory already exists.')
 else:
     os.makedirs(work_dir)
 
@@ -75,7 +79,7 @@ def makeSplines():
 def makeEvents(nevents = 100):
  run = 11
  for p in pDict:
-  if p<0: print "scale number of "+sDict[p]+" events with %5.2F"%(1./nuOverNubar[abs(p)])
+  if p<0: print("scale number of "+sDict[p]+" events with %5.2F"%(1./nuOverNubar[abs(p)]))
   if not sDict[p] in os.listdir('.'): os.system('mkdir '+sDict[p])
   os.chdir('./'+sDict[p])
   #os.system('rm '+hfile)
@@ -85,10 +89,10 @@ def makeEvents(nevents = 100):
   # stop at 350 GeV, otherwise strange warning about "Lower energy neutrinos have a higher probability of 
   # interacting than those at higher energy. pmaxLow(E=386.715)=2.157e-13 and  pmaxHigh(E=388.044)=2.15623e-13"
   N = nevents
-  if p<0: N = int(nevents / nuOverNubar[abs(p)])
+  if p<0: N = int(old_div(nevents, nuOverNubar[abs(p)]))
   cmd = "gevgen -n "+str(N)+" -p "+str(p)+" -t "+targetcode +" -e  0.5,350  --run "+str(run)+" -f "+neutrinos+","+pDict[p]+ \
             " --cross-sections "+splines+" --message-thresholds $GENIE/config/Messenger_laconic.xml" +" --seed "+str(seed)
-  print "start genie ",cmd
+  print("start genie ",cmd)
   os.system(cmd+" > log"+sDict[p]+" &")
   run +=1
   os.chdir('../')

@@ -1,3 +1,7 @@
+from __future__ import print_function
+from builtins import zip
+from builtins import str
+from builtins import range
 import ROOT
 import shipunit as u
 
@@ -57,7 +61,7 @@ def execute():
     N_MUONS = 2
     canvas = ROOT.gROOT.FindObject('Root Canvas EnergyLoss')
     if not canvas:
-      print "add particle flower not started!"
+      print("add particle flower not started!")
       return
     lsOfGlobals = ROOT.gROOT.GetListOfGlobals()
     c1 = canvas.cd(1)
@@ -82,7 +86,7 @@ def execute():
 
     checked_muons = set()
     all_muons_hitlist = [collect_hits(lsOfGlobals, checked_muons) for _ in range(N_MUONS)]
-    all_muons_hitlist = list(filter(lambda x: x, all_muons_hitlist))
+    all_muons_hitlist = list([x for x in all_muons_hitlist if x])
     trajectories = [trajectory_init(lsOfGlobals, "SHiP MuonTraj_" + str(index))
                     for index in range(len(all_muons_hitlist))]
 
@@ -95,7 +99,7 @@ def execute():
           emin = min(emin, E)
 
     emin, emax = emin * 0.9, emax * 1.1
-    print "zmin/max", zmin, zmax
+    print("zmin/max", zmin, zmax)
     hist = c1.DrawFrame(zmin, emin, zmax, emax)
     hist.SetYTitle('p (GeV/c)')
     hist.SetXTitle('z cm')

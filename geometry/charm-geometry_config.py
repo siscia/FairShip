@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 import shipunit as u
 from ShipGeoConfig import AttrDict, ConfigRegistry
 # the following params should be passed through 'ConfigRegistry.loadpy' method
@@ -183,7 +185,7 @@ with ConfigRegistry.register_config("basic") as c:
     c.Spectrometer.H = 2*c.Spectrometer.BasisH + c.Spectrometer.CoilD + c.Spectrometer.UpCoilH + c.Spectrometer.LowCoilH
 
     # -----Drift tube part --------
-    c.MufluxSpectrometer.v_drift = 1./(72*u.ns/u.mm) # 1300 ns max for 36.3 mm drifttubes
+    c.MufluxSpectrometer.v_drift = 1./(old_div(72*u.ns,u.mm)) # 1300 ns max for 36.3 mm drifttubes
     c.MufluxSpectrometer.sigma_spatial = 0.027*u.cm # from Daniel 8feb2018
     
     c.MufluxSpectrometer.TubeLength         = 160.*u.cm
@@ -403,39 +405,39 @@ with ConfigRegistry.register_config("basic") as c:
     c.SciFi.xSi = []
     c.SciFi.ySi = []
     c.SciFi.zSi = []
-    zscifigap = c.SciFi.DZ/c.SciFi.nstations - c.SciFi.StationDimZ #distance between center of two stations, for the moment equally spaced
+    zscifigap = old_div(c.SciFi.DZ,c.SciFi.nstations) - c.SciFi.StationDimZ #distance between center of two stations, for the moment equally spaced
     #Module 0
     c.SciFi.xSi.append(0.)
     c.SciFi.ySi.append(0.)
-    c.SciFi.zSi.append(c.SciFi.StationDimZ/2)
+    c.SciFi.zSi.append(old_div(c.SciFi.StationDimZ,2))
     #Module 1
     c.SciFi.xSi.append(0.0)
     c.SciFi.ySi.append(0.0)
-    c.SciFi.zSi.append(c.SciFi.StationDimZ/2 + zscifigap)
+    c.SciFi.zSi.append(old_div(c.SciFi.StationDimZ,2) + zscifigap)
     #Module 2
     c.SciFi.xSi.append(0.0)
     c.SciFi.ySi.append(0.0)
-    c.SciFi.zSi.append(c.SciFi.StationDimZ/2 + 2* zscifigap)
+    c.SciFi.zSi.append(old_div(c.SciFi.StationDimZ,2) + 2* zscifigap)
     #Module 3
     c.SciFi.xSi.append(0.0)
     c.SciFi.ySi.append(0.0)
-    c.SciFi.zSi.append(c.SciFi.StationDimZ/2 + 3*zscifigap)
+    c.SciFi.zSi.append(old_div(c.SciFi.StationDimZ,2) + 3*zscifigap)
     #Module 4
     c.SciFi.xSi.append(0.0)
     c.SciFi.ySi.append(0.0)
-    c.SciFi.zSi.append(c.SciFi.StationDimZ/2 + 4*zscifigap)
+    c.SciFi.zSi.append(old_div(c.SciFi.StationDimZ,2) + 4*zscifigap)
     #Module 5
     c.SciFi.xSi.append(0.0)
     c.SciFi.ySi.append(0.0)
-    c.SciFi.zSi.append(c.SciFi.StationDimZ/2 + 5*zscifigap)
+    c.SciFi.zSi.append(old_div(c.SciFi.StationDimZ,2) + 5*zscifigap)
     #Module 6
     c.SciFi.xSi.append(0.0)
     c.SciFi.ySi.append(0.0)
-    c.SciFi.zSi.append(c.SciFi.StationDimZ/2 + 6*zscifigap)
+    c.SciFi.zSi.append(old_div(c.SciFi.StationDimZ,2) + 6*zscifigap)
     #Module 7
     c.SciFi.xSi.append(0.0)
     c.SciFi.ySi.append(0.0)
-    c.SciFi.zSi.append(c.SciFi.StationDimZ/2 + 7*zscifigap)
+    c.SciFi.zSi.append(old_div(c.SciFi.StationDimZ,2) + 7*zscifigap)
 
     c.Spectrometer.Bvalue = 1 * u.tesla;
 
@@ -455,7 +457,7 @@ with ConfigRegistry.register_config("basic") as c:
     c.PixelModules.DimZpixelbox = c.PixelModules.zSi[11] - c.PixelModules.zSi[0] + c.PixelModules.DimZSi    
 
     PixeltoGoliath = 30.45 *u.cm #25.45 + 5cm different goliath dz
-    c.Spectrometer.zBox = 350.75 - c.Spectrometer.TS/2 - PixeltoGoliath - c.PixelModules.DimZpixelbox/2.
+    c.Spectrometer.zBox = 350.75 - old_div(c.Spectrometer.TS,2) - PixeltoGoliath - c.PixelModules.DimZpixelbox/2.
     #position of mother volumes
     c.Box.zBox = c.Spectrometer.zBox - c.PixelModules.DimZpixelbox/2. - c.Box.GapPostTargetTh
     c.PixelModules.zBox = c.Spectrometer.zBox

@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import ROOT
 import shipunit as u
 import rootUtils as ut
@@ -24,10 +27,10 @@ def findPi0(sTree,secVertex):
   P = aClu.RecoE()
   direction = ROOT.TVector3(aClu.X()-secVertex.X(),aClu.Y()-secVertex.Y(),z_ecal-secVertex.Z())
   norm = direction.Mag()
-  recoGammas[gamma] = ROOT.TLorentzVector(direction.X()/norm*P,direction.Y()/norm*P,direction.Z()/norm*P,P)
+  recoGammas[gamma] = ROOT.TLorentzVector(old_div(direction.X(),norm*P),old_div(direction.Y(),norm*P),old_div(direction.Z(),norm*P),P)
   sTree.MCTrack[mc].GetStartVertex(V)
  if len(recoGammas)==0: return []
- listOfGammas=recoGammas.values()
+ listOfGammas=list(recoGammas.values())
  for g1 in range(len(listOfGammas)-1):
   for g2 in range(g1+1,len(listOfGammas)):
     pi0 = listOfGammas[g1] + listOfGammas[g2]

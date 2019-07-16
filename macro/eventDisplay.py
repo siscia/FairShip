@@ -1,5 +1,13 @@
 #!/usr/bin/env python -i
-import ROOT,sys,getopt,os,Tkinter,atexit
+from __future__ import division
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
+import ROOT,sys,getopt,os,tkinter,atexit
 from ShipGeoConfig import ConfigRegistry
 from rootpyPickler import Unpickler
 from array import array
@@ -12,7 +20,7 @@ HiddenParticleID = 9900015
 
 def evExit():
  if ROOT.gROOT.FindObject('Root Canvas EnergyLoss'):
-  print "make suicide before framework makes seg fault" 
+  print("make suicide before framework makes seg fault") 
   os.kill(os.getpid(),9)
 # apperantly problem disappeared in more recent root versions
 if float(ROOT.gROOT.GetVersion().split('/')[0])>6.07: atexit.register(evExit)
@@ -45,7 +53,7 @@ try:
         opts, args = getopt.getopt(sys.argv[1:], "o:D:FHPu:f:p:g:x:c:hqv:sl:A:i:Y",["paramFile=","geoFile="])
 except getopt.GetoptError:
         # print help information and exit:
-        print ' enter -f filename -g geofile (-p param file  not needed if geofile present) -i hidden particle ID (default 9900015)'  
+        print(' enter -f filename -g geofile (-p param file  not needed if geofile present) -i hidden particle ID (default 9900015)')  
         sys.exit()
 for o, a in opts:
         if o in ("-Y",):
@@ -61,7 +69,7 @@ for o, a in opts:
         if o in ("-i",):
             HiddenParticleID = int(a)
 
-print "FairShip setup for",simEngine
+print("FairShip setup for",simEngine)
 
 if not InputFile:
  tag = simEngine+"-"+mcEngine+'_D'
@@ -80,37 +88,37 @@ if InputFile.find('_D')>0: withGeo = True
 
 def printMCTrack(n,MCTrack):
    mcp = MCTrack[n]
-   print ' %6i %7i %6.3F %6.3F %7.3F %7.3F %7.3F %7.3F %6i '%(n,mcp.GetPdgCode(),mcp.GetPx()/u.GeV,mcp.GetPy()/u.GeV,mcp.GetPz()/u.GeV, \
-                      mcp.GetStartX()/u.m,mcp.GetStartY()/u.m,mcp.GetStartZ()/u.m,mcp.GetMotherId()   )
+   print(' %6i %7i %6.3F %6.3F %7.3F %7.3F %7.3F %7.3F %6i '%(n,mcp.GetPdgCode(),old_div(mcp.GetPx(),u.GeV),old_div(mcp.GetPy(),u.GeV),old_div(mcp.GetPz(),u.GeV), \
+                      old_div(mcp.GetStartX(),u.m),old_div(mcp.GetStartY(),u.m),old_div(mcp.GetStartZ(),u.m),mcp.GetMotherId()   ))
 def dump(pcut=0):
- print '   #         pid   px    py      pz     vx      vy       vz      mid'
+ print('   #         pid   px    py      pz     vx      vy       vz      mid')
  n=-1
  for mcp in sTree.MCTrack: 
    n+=1
-   if mcp.GetP()/u.GeV < pcut :  continue
+   if old_div(mcp.GetP(),u.GeV) < pcut :  continue
    printMCTrack(n,sTree.MCTrack)
 def printFittedTracks():
-  print '  # converged Ndf chi2/Ndf    P      Pt      MCid'
+  print('  # converged Ndf chi2/Ndf    P      Pt      MCid')
   n=-1
   for ft in sTree.FitTracks:
    n+=1
    fitStatus = ft.getFitStatus()
    fitState  = ft.getFittedState()
    mom = fitState.getMom()
-   print '%3i %6i   %4i %6.3F   %6.3F %6.3F %6i '%(n,fitStatus.isFitConverged(),\
-            fitStatus.getNdf(),fitStatus.getChi2()/fitStatus.getNdf(),\
-            mom.Mag()/u.GeV,mom.Pt()/u.GeV,sTree.fitTrack2MC[n] )
+   print('%3i %6i   %4i %6.3F   %6.3F %6.3F %6i '%(n,fitStatus.isFitConverged(),\
+            fitStatus.getNdf(),old_div(fitStatus.getChi2(),fitStatus.getNdf()),\
+            old_div(mom.Mag(),u.GeV),old_div(mom.Pt(),u.GeV),sTree.fitTrack2MC[n] ))
 def printParticles():
-  print '  #    P    Pt[GeV/c]   DOCA[mm]    Rsq    Vz[m]    d1    d2'
+  print('  #    P    Pt[GeV/c]   DOCA[mm]    Rsq    Vz[m]    d1    d2')
   n=-1
   for aP in sTree.Particles:
    n+=1
    doca = -1.
    if aP.GetMother(1)==99: # DOCA is set
       doca = aP.T()
-   Rsq = (aP.Vx()/(2.45*u.m) )**2 + (aP.Vy()/((10./2.-0.05)*u.m) )**2
-   print '%3i %6.3F  %6.3F  %9.3F    %6.3F   %6.3F %4i  %4i '%(n,aP.P()/u.GeV,aP.Pt()/u.GeV,\
-            doca/u.mm,Rsq,aP.Vz()/u.m,aP.GetDaughter(0),aP.GetDaughter(1) )
+   Rsq = (old_div(aP.Vx(),(2.45*u.m)) )**2 + (old_div(aP.Vy(),((10./2.-0.05)*u.m)) )**2
+   print('%3i %6.3F  %6.3F  %9.3F    %6.3F   %6.3F %4i  %4i '%(n,old_div(aP.P(),u.GeV),old_div(aP.Pt(),u.GeV),\
+            old_div(doca,u.mm),Rsq,old_div(aP.Vz(),u.m),aP.GetDaughter(0),aP.GetDaughter(1) ))
 class DrawVetoDigi(ROOT.FairTask):
  " My Fair Task"
  def InitTask(self):
@@ -168,8 +176,8 @@ class DrawEcalCluster(ROOT.FairTask):
      for i in range( aClus.Size() ):
       mccell = self.ecalStructure.GetHitCell(aClus.CellNum(i))  # Get i'th cell of the cluster.
       if not mccell: continue 
-      x1,y1,x2,y2,dz = mccell.X1(),mccell.Y1(),mccell.X2(),mccell.Y2(),mccell.GetEnergy()/u.GeV*0.5*u.m
-      if mccell.GetEnergy()/u.MeV < 4. : continue
+      x1,y1,x2,y2,dz = mccell.X1(),mccell.Y1(),mccell.X2(),mccell.Y2(),old_div(mccell.GetEnergy(),u.GeV*0.5*u.m)
+      if old_div(mccell.GetEnergy(),u.MeV) < 4. : continue
 # ADC noise simulated Guassian with \sigma=1 MeV
       DClus = ROOT.TEveBox()
       DClus.SetName('EcalCluster_'+str(cl)+'_'+str(i)) 
@@ -198,7 +206,7 @@ class DrawEcalCluster(ROOT.FairTask):
   DTrack.SetTitle(aP.__repr__())
   DTrack.SetName('Prtcle_'+str(n))
   DTrack.SetNextPoint(aP.Vx(),aP.Vy(),aP.Vz())
-  lam = (self.Targetz - aP.Vz())/aP.Pz()
+  lam = old_div((self.Targetz - aP.Vz()),aP.Pz())
   DTrack.SetNextPoint(aP.Vx()+lam*aP.Px(),aP.Vy()+lam*aP.Py(),self.Targetz)
   self.comp.AddElement(DTrack)
   self.comp.CloseCompound()
@@ -261,7 +269,7 @@ class DrawTracks(ROOT.FairTask):
   DTrack.SetTitle(aP.__repr__())
   DTrack.SetName('Prtcle_'+str(n))
   DTrack.SetNextPoint(aP.Vx(),aP.Vy(),aP.Vz())
-  lam = (self.Targetz - aP.Vz())/aP.Pz()
+  lam = old_div((self.Targetz - aP.Vz()),aP.Pz())
   DTrack.SetNextPoint(aP.Vx()+lam*aP.Px(),aP.Vy()+lam*aP.Py(),self.Targetz)
   self.comp.AddElement(DTrack)
  def DrawMCTrack(self,n):
@@ -290,7 +298,7 @@ class DrawTracks(ROOT.FairTask):
   else:
     zEx = 10*u.m
     if evVx : zEx = -10*u.m
-    lam = (zEx+fPos.Z())/fMom.Z()
+    lam = old_div((zEx+fPos.Z()),fMom.Z())
     DTrack.SetNextPoint(fPos.X()+lam*fMom.X(),fPos.Y()+lam*fMom.Y(),zEx+fPos.Z())
   c = ROOT.kYellow
   DTrack.SetMainColor(c)
@@ -348,10 +356,10 @@ class DrawTracks(ROOT.FairTask):
      else    : 
       zEx = 10*u.m
       fT.GetMomentum(fMom)
-      lam = (zEx+fPos.Z())/fMom.Z()
+      lam = old_div((zEx+fPos.Z()),fMom.Z())
       hitlist[zEx+fPos.Z()] = [fPos.X()+lam*fMom.X(),fPos.Y()+lam*fMom.Y()]
 # sort in z
-   lz = hitlist.keys()
+   lz = list(hitlist.keys())
    if len(lz)>1:
     lz.sort()
     for z in lz:  DTrack.SetNextPoint(hitlist[z][0],hitlist[z][1],z)
@@ -365,7 +373,7 @@ class DrawTracks(ROOT.FairTask):
     DTrack.SetLineWidth(3)
     self.comp.AddElement(DTrack)
     ntot+=1
-  print "draw ",ntot," MC tracks"
+  print("draw ",ntot," MC tracks")
  def DrawFittedTracks(self,option=''):
   n,ntot = -1,0
   for fT in sTree.FitTracks:
@@ -388,20 +396,20 @@ class DrawTracks(ROOT.FairTask):
     if rc:
       DTrack.SetNextPoint(newpos.X(),newpos.Y(),newpos.Z())
     else: 
-      print 'error with extrapolation: z=',zs
+      print('error with extrapolation: z=',zs)
       # use linear extrapolation
       px,py,pz  = mom.X(),mom.Y(),mom.Z() 
-      lam = (zs-pos.Z())/pz
+      lam = old_div((zs-pos.Z()),pz)
       DTrack.SetNextPoint(pos.X()+lam*px,pos.Y()+lam*py,zs)
     zs+=self.dz
    DTrack.SetName('FitTrack_'+str(n))
    c = ROOT.kWhite
-   if self.trackColors.has_key(abs(pid)) : c = self.trackColors[abs(pid)]
+   if abs(pid) in self.trackColors : c = self.trackColors[abs(pid)]
    DTrack.SetMainColor(c)
    DTrack.SetLineWidth(3)
    self.comp.AddElement(DTrack)
    ntot+=1
-  print "draw ",ntot," fitted tracks"
+  print("draw ",ntot," fitted tracks")
   n=-1
   for aP in sTree.Particles:
    n+=1
@@ -423,26 +431,26 @@ class DrawTracks(ROOT.FairTask):
    DTrack.SetName('Particle_'+str(n))
    DTrack.SetTitle(aP.__repr__())
    DTrack.SetNextPoint(aP.Vx(),aP.Vy(),aP.Vz())
-   lam = (self.Targetz - aP.Vz())/aP.Pz()
+   lam = old_div((self.Targetz - aP.Vz()),aP.Pz())
    DTrack.SetNextPoint(aP.Vx()+lam*aP.Px(),aP.Vy()+lam*aP.Py(),self.Targetz)
    self.comp.AddElement(DTrack)
 #
 import evd_fillEnergy
-class IO():
+class IO(object):
     def __init__(self):
-        self.master = Tkinter.Tk()
+        self.master = tkinter.Tk()
         self.master.title('SHiP Event Display GUI')
         self.master.geometry(u'320x580+165+820')  
-        self.fram1 = Tkinter.Frame(self.master)
-        b = Tkinter.Button(self.fram1, text="Next Event",command=self.nextEvent)
-        b.pack(fill=Tkinter.BOTH, expand=1) 
-        label = Tkinter.Label(self.fram1, text='Event number:')
-        label["relief"] = Tkinter.RAISED
-        entry = Tkinter.Entry(self.fram1)
+        self.fram1 = tkinter.Frame(self.master)
+        b = tkinter.Button(self.fram1, text="Next Event",command=self.nextEvent)
+        b.pack(fill=tkinter.BOTH, expand=1) 
+        label = tkinter.Label(self.fram1, text='Event number:')
+        label["relief"] = tkinter.RAISED
+        entry = tkinter.Entry(self.fram1)
         entry["foreground"] = "blue"
-        label.pack(side=Tkinter.LEFT)
-        entry.pack(side=Tkinter.RIGHT)
-        self.contents = Tkinter.IntVar()
+        label.pack(side=tkinter.LEFT)
+        entry.pack(side=tkinter.RIGHT)
+        self.contents = tkinter.IntVar()
         # set it to some value
         self.n = 0
         self.contents.set(self.n)
@@ -454,25 +462,25 @@ class IO():
         entry.bind('<Key-Return>', self.nextEvent)
         self.lbut   = {}
         x = 'withMC'
-        a = Tkinter.IntVar()
+        a = tkinter.IntVar()
         if globals()['withMCTracks']: a.set(1)
         else: a.set(0)
-        self.lbut[x] = Tkinter.Checkbutton(self.master,text="with MC Tracks",compound=Tkinter.LEFT,variable=a)
+        self.lbut[x] = tkinter.Checkbutton(self.master,text="with MC Tracks",compound=tkinter.LEFT,variable=a)
         self.lbut[x].var = a
         self.lbut[x]['command'] = self.toogleMCTracks
-        self.lbut[x].pack(side=Tkinter.TOP)
+        self.lbut[x].pack(side=tkinter.TOP)
         self.geoscene = ROOT.gEve.GetScenes().FindChild("Geometry scene")
         for v in top.GetNodes():
          x=v.GetName()
          'toogle("'+x+'")' 
-         a = Tkinter.IntVar()
+         a = tkinter.IntVar()
          assemb = "Assembly" in v.GetVolume().__str__() 
          if v.IsVisible() or (assemb and v.IsVisDaughters()): a.set(1)
          else : a.set(0)
-         self.lbut[x]  = Tkinter.Checkbutton(self.master,text=x.replace('_1',''),compound=Tkinter.LEFT,variable=a)
+         self.lbut[x]  = tkinter.Checkbutton(self.master,text=x.replace('_1',''),compound=tkinter.LEFT,variable=a)
          self.lbut[x].var = a
          self.lbut[x]['command'] = lambda j=x: self.toogle(j)
-         self.lbut[x].pack(side=Tkinter.BOTTOM)
+         self.lbut[x].pack(side=tkinter.BOTTOM)
         self.fram1.pack()
 # add ship actions to eve display
         gEve = ROOT.gEve
@@ -549,12 +557,12 @@ class IO():
         v = top.GetNode(x)
         assemb = "Assembly" in v.GetVolume().__str__()
         if v.IsVisible()>0  or assemb and v.IsVisDaughters()>0 : 
-          print "switch off ",x
+          print("switch off ",x)
           v.SetVisibility(0)
           v.SetVisDaughters(0)
           self.lbut[x].var.set(0)
         else:
-          print "switch on ",x
+          print("switch on ",x)
           if assemb:  v.SetVisDaughters(1)
           else:       v.SetVisibility(1)
           self.lbut[x].var.set(1)
@@ -579,7 +587,7 @@ class EventLoop(ROOT.FairTask):
     self.ecalFiller = ROOT.ecalStructureFiller("ecalFiller", 0,ecalGeo)
     if ecalGeoFile.find("5x10")<0:   
           self.ecalFiller.SetUseMCPoints(ROOT.kFALSE)
-          print "ecal cluster display disabled, seems only to work with 5x10m ecal geofile"
+          print("ecal cluster display disabled, seems only to work with 5x10m ecal geofile")
     else:  self.ecalFiller.SetUseMCPoints(ROOT.kTRUE)
     self.ecalFiller.StoreTrackInformation()
     sTree.GetEvent(0)
@@ -613,7 +621,7 @@ class EventLoop(ROOT.FairTask):
      self.calos.ExecuteTask()
    if sTree.FindBranch("Digi_SBTHits"): self.veto.ExecuteTask()
    if ROOT.gROOT.FindObject('Root Canvas EnergyLoss'): evd_fillEnergy.execute()
-   print 'Event %i ready'%(self.n)
+   print('Event %i ready'%(self.n))
 # make pointsets pickable
    for x in mcHits: 
      p = ROOT.gEve.GetCurrentEvent().FindChild(mcHits[x].GetName())
@@ -765,7 +773,7 @@ def switchOn(tag):
  for v in top.GetNodes():
    vname = v.GetName()
    if not vname.find(tag)<0:
-     print 'switch on ',vname
+     print('switch on ',vname)
      v.SetVisibility(1)
      v.SetVisDaughters(1)
  gEve.ElementChanged(geoscene,True,True)
@@ -824,7 +832,7 @@ def select(pattern):
  return exc
 def search(lvdict,tag):
   for x in lvdict: 
-   if not x.find(tag)<0: print x
+   if not x.find(tag)<0: print(x)
 def rename(name='ship.TGeant4.root'):
  f = ROOT.TFile(name,'UPDATE')
  t = f.Get('cbmsim')
@@ -852,7 +860,7 @@ class Rulers(ROOT.FairTask):
   a1.SetLineWidth(30)
   #self.ruler.AddElement(a1)
   z=zstart
-  for i in range(int(zlength/100/ticks)):
+  for i in range(int(old_div(zlength,100/ticks))):
    m = ROOT.TEveLine()
    m.SetNextPoint(xpos,ypos, z)
    m.SetNextPoint(xpos-1*u.m,ypos,z)
@@ -876,7 +884,7 @@ class Rulers(ROOT.FairTask):
   a2.SetLineWidth(30)
   #self.ruler.AddElement(a2)
   ypos=-ylength
-  for i in range(-int(ylength/100),int(ylength/100),1):
+  for i in range(-int(old_div(ylength,100)),int(old_div(ylength,100)),1):
    m = ROOT.TEveLine()
    m.SetNextPoint(xpos,ypos, z)
    m.SetNextPoint(xpos+0.05*u.m,ypos,z)
@@ -904,7 +912,7 @@ class Rulers(ROOT.FairTask):
   a3.SetLineWidth(30)
   #self.ruler.AddElement(a3)
   xpos=-xlength
-  for i in range(-int(xlength/100),int(xlength/100),1):
+  for i in range(-int(old_div(xlength,100)),int(old_div(xlength,100)),1):
    m = ROOT.TEveLine()
    m.SetNextPoint(xpos,ypos, z)
    m.SetNextPoint(xpos,ypos-0.05*u.m,z)
@@ -948,17 +956,17 @@ def mydebug():
     gTr.Print()
     gTr.GetParticle()
     lorv = ROOT.TLorentzVector()
-    print 'xyz E pxpypz',gTr.GetPoint(0)[0],gTr.GetPoint(0)[1] ,gTr.GetPoint(0)[2],lorv.E(),lorv.Px(),lorv.Py(),lorv.Pz()
+    print('xyz E pxpypz',gTr.GetPoint(0)[0],gTr.GetPoint(0)[1] ,gTr.GetPoint(0)[2],lorv.E(),lorv.Px(),lorv.Py(),lorv.Pz())
 # Loop over MC tracks  
  for i in range( min(5,nev) ) :
    t.GetEntry(i)
    for gMCTr in t.MCTrack: 
     gMCTr.Print()
-    print  gMCTr.GetPdgCode(),gMCTr.GetMass(),gMCTr.GetP()
+    print(gMCTr.GetPdgCode(),gMCTr.GetMass(),gMCTr.GetP())
 # MC event header  
  for i in range( nev ) :
    t.GetEntry(i)
-   print t.MCEventHeader.GetEventID(),t.MCEventHeader.GetRunID(),t.MCEventHeader.GetZ()
+   print(t.MCEventHeader.GetEventID(),t.MCEventHeader.GetRunID(),t.MCEventHeader.GetZ())
 # geometrie
  sGeo = ROOT.gGeoManager
  cave = sGeo.GetTopVolume()
@@ -977,7 +985,7 @@ def debugStraw(n):
  sTree = g.FindObjectAny('cbmsim')
  sTree.GetEntry(n)
  for s in sTree.strawtubesPoint:
-  print vols[s.GetDetectorID()-1].GetName()
+  print(vols[s.GetDetectorID()-1].GetName())
 
 #----Load the default libraries------
 from basiclibs import *  
@@ -1103,8 +1111,8 @@ SHiPDisplay.InitTask()
 
 # SHiPDisplay.NextEvent(0)
 
-print 'Help on GL viewer can be found by pressing Help button followed by help on GL viewer'
-print 'With the camera button, you can switch to different views.'
+print('Help on GL viewer can be found by pressing Help button followed by help on GL viewer')
+print('With the camera button, you can switch to different views.')
 # short cuts
 # w go to wire frame
 # r smooth display
@@ -1123,7 +1131,7 @@ def DrawCharmTracks():
     if aTrack.GetMotherId()==1:
       pa = pdg.GetParticle(sTree.MCTrack[i] .GetPdgCode())
       if pa.Lifetime()>1.E-12: 
-       print  sTree.MCTrack[i]
+       print(sTree.MCTrack[i])
        SHiPDisplay.tracks.DrawMCTrack(i)
 def DrawSimpleMCTracks():
   comp = SHiPDisplay.tracks.comp
@@ -1143,9 +1151,9 @@ def DrawSimpleMCTracks():
    hitlist = {}
    hitlist[fPos.Z()] = [fPos.X(),fPos.Y()]
    z = fPos.Z() + delZ
-   slx,sly = fMom.X()/fMom.Z(),fMom.Y()/fMom.Z()
+   slx,sly = old_div(fMom.X(),fMom.Z()),old_div(fMom.Y(),fMom.Z())
    hitlist[z] = [fPos.X()+slx*delZ,fPos.Y()+sly*delZ]
-   lz = hitlist.keys()
+   lz = list(hitlist.keys())
    for z in lz:  DTrack.SetNextPoint(hitlist[z][0],hitlist[z][1],z)
    p = pdg.GetParticle(fT.GetPdgCode()) 
    if p : pName = p.GetName()
@@ -1182,7 +1190,7 @@ def PRVersion():
  zstart  = ShipGeo.target.z0
  zlength = ShipGeo.MuonStation3.z - zstart + 10*u.m
  z=zstart
- for i in range(int(zlength/100/ticks)):
+ for i in range(int(old_div(zlength,100/ticks))):
    m = ROOT.TEveLine()
    m.SetNextPoint(xpos,ypos, z)
    m.SetNextPoint(xpos-1*u.m,ypos,z)
@@ -1199,7 +1207,7 @@ def PRVersion():
  z = ShipGeo.MuonStation3.z+6*u.m
  ylength = 7*u.m
  ypos=-ylength
- for i in range(-int(ylength/100),int(ylength/100),1):
+ for i in range(-int(old_div(ylength,100)),int(old_div(ylength,100)),1):
    m = ROOT.TEveLine()
    m.SetNextPoint(xpos,ypos, z)
    m.SetNextPoint(xpos+0.05*u.m,ypos,z)
@@ -1221,7 +1229,7 @@ def PRVersion():
  z = ShipGeo.MuonStation3.z+10*u.m
  xlength = 3*u.m
  xpos=-xlength
- for i in range(-int(xlength/100),int(xlength/100),1):
+ for i in range(-int(old_div(xlength,100)),int(old_div(xlength,100)),1):
    m = ROOT.TEveLine()
    m.SetNextPoint(xpos,ypos, z)
    m.SetNextPoint(xpos,ypos-0.05*u.m,z)
