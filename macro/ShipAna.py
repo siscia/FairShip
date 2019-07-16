@@ -1,4 +1,9 @@
+from __future__ import division
+from __future__ import print_function
 # example for accessing smeared hits and fitted tracks
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import ROOT,os,sys,getopt
 import rootUtils as ut
 import shipunit as u
@@ -23,7 +28,7 @@ try:
         opts, args = getopt.getopt(sys.argv[1:], "n:f:g:A:Y:i", ["nEvents=","geoFile="])
 except getopt.GetoptError:
         # print help information and exit:
-        print ' enter file name'
+        print(' enter file name')
         sys.exit()
 for o, a in opts:
         if o in ("-f",):
@@ -62,7 +67,7 @@ else:
 upkl    = Unpickler(fgeo)
 ShipGeo = upkl.load('ShipGeo')
 ecalGeoFile = ShipGeo.ecal.File
-dy = ShipGeo.Yheight/u.m
+dy = old_div(ShipGeo.Yheight,u.m)
 
 # -----Create geometry----------------------------------------------
 import shipDet_conf
@@ -78,7 +83,7 @@ import geomGeant4
 if hasattr(ShipGeo.Bfield,"fieldMap"):
   fieldMaker = geomGeant4.addVMCFields(ShipGeo, '', True, withVirtualMC = False)
 else:
-  print "no fieldmap given, geofile too old, not anymore support"
+  print("no fieldmap given, geofile too old, not anymore support")
   exit(-1)
 sGeo   = fgeo.FAIRGeom
 geoMat =  ROOT.genfit.TGeoMaterialInterface()
@@ -154,9 +159,9 @@ def VertexError(t1,t2,PosDir,CovMat,scalFac):
    ca  = c-a
    denom = Usq*Vsq-UV**2
    tmp2 = Vsq*u-UV*v
-   Va = ca.Dot(tmp2)/denom
+   Va = old_div(ca.Dot(tmp2),denom)
    tmp2 = UV*u-Usq*v
-   Vb = ca.Dot(tmp2)/denom
+   Vb = old_div(ca.Dot(tmp2),denom)
    X = (a+c+Va*u+Vb*v) * 0.5
    l1 = a - X + u*Va  # l2 = c - X + v*Vb
    dist = 2. * ROOT.TMath.Sqrt( l1.Dot(l1) )
@@ -171,21 +176,21 @@ def VertexError(t1,t2,PosDir,CovMat,scalFac):
          temp  = ( u[j]*Vsq - v[j]*UV )*u[i] + (u[j]*UV-v[j]*Usq)*v[i]
          sign = -1
          if k==2 : sign = +1
-         T[i][3*k+j] = 0.5*( KD + sign*temp/denom )
+         T[i][3*k+j] = 0.5*( KD + old_div(sign*temp,denom) )
         elif k==1:
        # covu
          aNAZ = denom*( ca[j]*Vsq-v.Dot(ca)*v[j] )
          aZAN = ( ca.Dot(u)*Vsq-ca.Dot(v)*UV )*2*( u[j]*Vsq-v[j]*UV )
          bNAZ = denom*( ca[j]*UV+(u.Dot(ca)*v[j]) - 2*ca.Dot(v)*u[j] )
          bZAN = ( ca.Dot(u)*UV-ca.Dot(v)*Usq )*2*( u[j]*Vsq-v[j]*UV )
-         T[i][3*k+j] = 0.5*( Va*KD + u[i]/denom**2*(aNAZ-aZAN) + v[i]/denom**2*(bNAZ-bZAN) )
+         T[i][3*k+j] = 0.5*( Va*KD + old_div(u[i],denom**2*(aNAZ-aZAN)) + old_div(v[i],denom**2*(bNAZ-bZAN)) )
         elif k==3:
        # covv
          aNAZ = denom*( 2*ca.Dot(u)*v[j] - ca.Dot(v)*u[j] - ca[j]*UV )
          aZAN = ( ca.Dot(u)*Vsq-ca.Dot(v)*UV )*2*( v[j]*Usq-u[j]*UV )
          bNAZ = denom*( ca.Dot(u)*u[j]-ca[j]*Usq ) 
          bZAN = ( ca.Dot(u)*UV-ca.Dot(v)*Usq )*2*( v[j]*Usq-u[j]*UV )
-         T[i][3*k+j] = 0.5*(Vb*KD + u[i]/denom**2*(aNAZ-aZAN) + v[i]/denom**2*(bNAZ-bZAN) ) 
+         T[i][3*k+j] = 0.5*(Vb*KD + old_div(u[i],denom**2*(aNAZ-aZAN)) + old_div(v[i],denom**2*(bNAZ-bZAN)) ) 
    transT = ROOT.TMatrixD(12,3)
    transT.Transpose(T)
    CovTracks = ROOT.TMatrixD(12,12)
@@ -215,7 +220,7 @@ def dist2InnerWall(X,Y,Z):
      if not 'decayVol' in node.GetName(): return dist
   start = array('d',[X,Y,Z])
   nsteps = 8
-  dalpha = 2*ROOT.TMath.Pi()/nsteps
+  dalpha = old_div(2*ROOT.TMath.Pi(),nsteps)
   rsq = X**2+Y**2
   minDistance = 100 *u.m
   for n in range(nsteps):
@@ -239,9 +244,9 @@ def ImpactParameter(point,tPos,tMom):
   t = 0
   if hasattr(tMom,'P'): P = tMom.P()
   else:                 P = tMom.Mag()
-  for i in range(3):   t += tMom(i)/P*(point(i)-tPos(i)) 
+  for i in range(3):   t += old_div(tMom(i),P*(point(i)-tPos(i))) 
   dist = 0
-  for i in range(3):   dist += (point(i)-tPos(i)-t*tMom(i)/P)**2
+  for i in range(3):   dist += (point(i)-tPos(i)-old_div(t*tMom(i),P))**2
   dist = ROOT.TMath.Sqrt(dist)
   return dist
 #
@@ -287,11 +292,11 @@ def getPtruthFirst(sTree,mcPartKey):
 def access2SmearedHits():
  key = 0
  for ahit in ev.SmearedHits.GetObject():
-   print ahit[0],ahit[1],ahit[2],ahit[3],ahit[4],ahit[5],ahit[6]
+   print(ahit[0],ahit[1],ahit[2],ahit[3],ahit[4],ahit[5],ahit[6])
    # follow link to true MCHit
    mchit   = TrackingHits[key]
    mctrack =  MCTracks[mchit.GetTrackID()]
-   print mchit.GetZ(),mctrack.GetP(),mctrack.GetPdgCode()
+   print(mchit.GetZ(),mctrack.GetP(),mctrack.GetPdgCode())
    key+=1
 
 def myVertex(t1,t2,PosDir):
@@ -303,14 +308,14 @@ def myVertex(t1,t2,PosDir):
    v = ROOT.TVector3(PosDir[t2][1](0),PosDir[t2][1](1),PosDir[t2][1](2))
    pq = a-c
    uCrossv = u.Cross(v)
-   dist  = pq.Dot(uCrossv)/(uCrossv.Mag()+1E-8)
+   dist  = old_div(pq.Dot(uCrossv),(uCrossv.Mag()+1E-8))
    # u.a - u.c + s*|u|**2 - u.v*t    = 0
    # v.a - v.c + s*v.u    - t*|v|**2 = 0
    E = u.Dot(a) - u.Dot(c) 
    F = v.Dot(a) - v.Dot(c) 
    A,B = u.Mag2(), -u.Dot(v) 
    C,D = u.Dot(v), -v.Mag2()
-   t = -(C*E-A*F)/(B*C-A*D)
+   t = old_div(-(C*E-A*F),(B*C-A*D))
    X = c.x()+v.x()*t
    Y = c.y()+v.y()*t
    Z = c.z()+v.z()*t
@@ -339,7 +344,7 @@ def  RedoVertexing(t1,t2):
        try:
         reps[tr].extrapolateToPoint(states[tr], newPos, False)
        except:
-        print 'SHiPAna: extrapolation did not worked'
+        print('SHiPAna: extrapolation did not worked')
         rc = False  
         break
        newPosDir[tr] = [reps[tr].getPos(states[tr]),reps[tr].getDir(states[tr])]
@@ -348,7 +353,7 @@ def  RedoVertexing(t1,t2):
       dz = abs(zBefore-zv)
       step+=1
       if step > 10:  
-         print 'abort iteration, too many steps, pos=',xv,yv,zv,' doca=',doca,'z before and dz',zBefore,dz
+         print('abort iteration, too many steps, pos=',xv,yv,zv,' doca=',doca,'z before and dz',zBefore,dz)
          rc = False
          break 
      if not rc: return xv,yv,zv,doca,-1 # extrapolation failed, makes no sense to continue
@@ -409,7 +414,7 @@ def ecalCluster2MC(aClus):
       mccell.GetTrackEnergySlow(n, trackid, energy_dep)
       if not abs(trackid)<sTree.MCTrack.GetEntries(): tid = -1
       else: tid = int(trackid)
-      if not mcLink.has_key(tid): mcLink[tid]=0
+      if tid not in mcLink: mcLink[tid]=0
       mcLink[tid]+=energy_dep
 # find trackid most contributing
   eMax,mMax = 0,-1
@@ -417,29 +422,29 @@ def ecalCluster2MC(aClus):
      if mcLink[m]>eMax:
         eMax = mcLink[m]
         mMax = m
-  return mMax,eMax/aClus.Energy()
+  return mMax,old_div(eMax,aClus.Energy())
 
 def makePlots():
    ut.bookCanvas(h,key='ecalanalysis',title='cluster map',nx=800,ny=600,cx=1,cy=1)
    cv = h['ecalanalysis'].cd(1)
    h['ecalClusters'].Draw('colz')
    ut.bookCanvas(h,key='ecalCluster2Track',title='Ecal cluster distances to track impact',nx=1600,ny=800,cx=4,cy=2)
-   if h.has_key("ecalReconstructed_dist_mu+"):
+   if "ecalReconstructed_dist_mu+" in h:
     cv = h['ecalCluster2Track'].cd(1)
     h['ecalReconstructed_distx_mu+'].Draw()
     cv = h['ecalCluster2Track'].cd(2)
     h['ecalReconstructed_disty_mu+'].Draw()
-   if h.has_key("ecalReconstructed_dist_pi+"):
+   if "ecalReconstructed_dist_pi+" in h:
     cv = h['ecalCluster2Track'].cd(3)
     h['ecalReconstructed_distx_pi+'].Draw()
     cv = h['ecalCluster2Track'].cd(4)
     h['ecalReconstructed_disty_pi+'].Draw()
-   if h.has_key("ecalReconstructed_dist_mu-"):
+   if "ecalReconstructed_dist_mu-" in h:
     cv = h['ecalCluster2Track'].cd(5)
     h['ecalReconstructed_distx_mu-'].Draw()
     cv = h['ecalCluster2Track'].cd(6)
     h['ecalReconstructed_disty_mu-'].Draw()
-   if h.has_key("ecalReconstructed_dist_pi-"):
+   if "ecalReconstructed_dist_pi-" in h:
     cv = h['ecalCluster2Track'].cd(7)
     h['ecalReconstructed_distx_pi-'].Draw()
     cv = h['ecalCluster2Track'].cd(8)
@@ -536,7 +541,7 @@ def makePlots():
    cv.SetLogy(1)
    h['nrRPC'].Draw()
 #
-   print 'finished making plots'
+   print('finished making plots')
 # calculate z front face of ecal, needed later
 top = ROOT.gGeoManager.GetTopVolume()
 ecal = None
@@ -582,9 +587,9 @@ def myEventLoop(n):
       else: pName = 'ecalReconstructed_'+str(aP.GetPdgCode())
     else:
       pName = 'ecalReconstructed_unknown' 
-    if not h.has_key(pName): 
+    if pName not in h: 
       ut.bookHist(h,pName,'x/y and energy for '+pName.split('_')[1],50,-3.,3.,50,-6.,6.)
-    rc = h[pName].Fill(aClus.X()/u.m,aClus.Y()/u.m,aClus.RecoE()/u.GeV)
+    rc = h[pName].Fill(old_div(aClus.X(),u.m),old_div(aClus.Y(),u.m),old_div(aClus.RecoE(),u.GeV))
 # look at distance to tracks 
     for fT in sTree.FitTracks:
      rc,pos,mom = TrackExtrapolateTool.extrapolateToPlane(fT,z_ecal)
@@ -593,7 +598,7 @@ def myEventLoop(n):
       tmp = PDG.GetParticle(pdgcode)
       if tmp: tName = 'ecalReconstructed_dist_'+tmp.GetName()
       else: tName = 'ecalReconstructed_dist_'+str(aP.GetPdgCode())
-      if not h.has_key(tName): 
+      if tName not in h: 
        p = tName.split('dist_')[1]
        ut.bookHist(h,tName,'Ecal cluster distance t0 '+p,100,0.,100.*u.cm)
        ut.bookHist(h,tName.replace('dist','distx'),'Ecal cluster distance to '+p+' in X ',100,-50.*u.cm,50.*u.cm)
@@ -604,7 +609,7 @@ def myEventLoop(n):
       rc = h[tName.replace('dist','disty')].Fill( aClus.Y()-pos.Y() )
 # compare with old method
    for aClus in sTree.EcalClusters:
-     rc = h['ecalClusters'].Fill(aClus.X()/u.m,aClus.Y()/u.m,aClus.Energy()/u.GeV)
+     rc = h['ecalClusters'].Fill(old_div(aClus.X(),u.m),old_div(aClus.Y(),u.m),old_div(aClus.Energy(),u.GeV))
      mMax,frac = ecalCluster2MC(aClus)
 # return MC track most contributing, and its fraction of energy
      if mMax>0:    
@@ -614,8 +619,8 @@ def myEventLoop(n):
       else: pName = 'ecalClusters_'+str(aP.GetPdgCode())
      else:
       pName = 'ecalClusters_unknown' 
-     if not h.has_key(pName): ut.bookHist(h,pName,'x/y and energy for '+pName.split('_')[1],50,-3.,3.,50,-6.,6.)
-     rc = h[pName].Fill(aClus.X()/u.m,aClus.Y()/u.m,aClus.Energy()/u.GeV)
+     if pName not in h: ut.bookHist(h,pName,'x/y and energy for '+pName.split('_')[1],50,-3.,3.,50,-6.,6.)
+     rc = h[pName].Fill(old_div(aClus.X(),u.m),old_div(aClus.Y(),u.m),old_div(aClus.Energy(),u.GeV))
      
 # make some straw hit analysis
   hitlist = {}
@@ -632,7 +637,7 @@ def myEventLoop(n):
 #
      trID = ahit.GetTrackID()
      if not trID < 0 :
-      if hitlist.has_key(trID):  hitlist[trID]+=1
+      if trID in hitlist:  hitlist[trID]+=1
       else:  hitlist[trID]=1
   for tr in hitlist:  h['meanhits'].Fill(hitlist[tr])
   key = -1
@@ -652,7 +657,7 @@ def myEventLoop(n):
    rchi2 = fitStatus.getChi2()
    prob = ROOT.TMath.Prob(rchi2,int(nmeas))
    h['prob'].Fill(prob)
-   chi2 = rchi2/nmeas
+   chi2 = old_div(rchi2,nmeas)
    fittedState = atrack.getFittedState()
    h['chi2'].Fill(chi2,wg)
    h['measVSchi2'].Fill(atrack.getNumPoints(),chi2)
@@ -667,12 +672,12 @@ def myEventLoop(n):
    Ptruthz_start    = mcPart.GetPz()
    # get p truth from first strawpoint
    Ptruth,Ptruthx,Ptruthy,Ptruthz = getPtruthFirst(sTree,mcPartKey)
-   delPOverP = (Ptruth - P)/Ptruth
+   delPOverP = old_div((Ptruth - P),Ptruth)
    h['delPOverP'].Fill(Ptruth,delPOverP)
    delPOverPz = (1./Ptruthz - 1./Pz) * Ptruthz
-   h['pullPOverPx'].Fill( Ptruth,(Ptruthx-Px)/ROOT.TMath.Sqrt(cov[3][3]) )   
-   h['pullPOverPy'].Fill( Ptruth,(Ptruthy-Py)/ROOT.TMath.Sqrt(cov[4][4]) )   
-   h['pullPOverPz'].Fill( Ptruth,(Ptruthz-Pz)/ROOT.TMath.Sqrt(cov[5][5]) )   
+   h['pullPOverPx'].Fill( Ptruth,old_div((Ptruthx-Px),ROOT.TMath.Sqrt(cov[3][3])) )   
+   h['pullPOverPy'].Fill( Ptruth,old_div((Ptruthy-Py),ROOT.TMath.Sqrt(cov[4][4])) )   
+   h['pullPOverPz'].Fill( Ptruth,old_div((Ptruthz-Pz),ROOT.TMath.Sqrt(cov[5][5])) )   
    h['delPOverPz'].Fill(Ptruthz,delPOverPz)
    if chi2>chi2CutOff: continue
    h['delPOverP2'].Fill(Ptruth,delPOverP)
@@ -753,9 +758,9 @@ def myEventLoop(n):
     h['nrRPC'].Fill(vetoDets['RPC'][2])
 #   HNL true
     mctrack = sTree.MCTrack[sTree.fitTrack2MC[t1]]
-    h['Vzresol'].Fill( (mctrack.GetStartZ()-HNLPos.Z())/u.cm )
-    h['Vxresol'].Fill( (mctrack.GetStartX()-HNLPos.X())/u.cm )
-    h['Vyresol'].Fill( (mctrack.GetStartY()-HNLPos.Y())/u.cm )
+    h['Vzresol'].Fill( old_div((mctrack.GetStartZ()-HNLPos.Z()),u.cm) )
+    h['Vxresol'].Fill( old_div((mctrack.GetStartX()-HNLPos.X()),u.cm) )
+    h['Vyresol'].Fill( old_div((mctrack.GetStartY()-HNLPos.Y()),u.cm) )
     PosDir,newPosDir,CovMat,scalFac = {},{},{},{}
 # opening angle at vertex
     newPos = ROOT.TVector3(HNLPos.X(),HNLPos.Y(),HNLPos.Z())
@@ -776,14 +781,14 @@ def myEventLoop(n):
      mom1,mom2 = st1.getMom(),st2.getMom()
     newPosDir[t1] = {'position':rep1.getPos(state1),'direction':rep1.getDir(state1),'momentum':mom1}
     newPosDir[t2] = {'position':rep2.getPos(state2),'direction':rep2.getDir(state2),'momentum':mom2}
-    oa = mom1.Dot(mom2)/(mom1.Mag()*mom2.Mag()) 
+    oa = old_div(mom1.Dot(mom2),(mom1.Mag()*mom2.Mag())) 
     h['oa'].Fill(oa)
 #
     covX = HNL.GetCovV()
     dist = HNL.GetDoca()
-    h['Vzpull'].Fill( (mctrack.GetStartZ()-HNLPos.Z())/ROOT.TMath.Sqrt(covX[2][2]) )
-    h['Vxpull'].Fill( (mctrack.GetStartX()-HNLPos.X())/ROOT.TMath.Sqrt(covX[0][0]) )
-    h['Vypull'].Fill( (mctrack.GetStartY()-HNLPos.Y())/ROOT.TMath.Sqrt(covX[1][1]) )
+    h['Vzpull'].Fill( old_div((mctrack.GetStartZ()-HNLPos.Z()),ROOT.TMath.Sqrt(covX[2][2])) )
+    h['Vxpull'].Fill( old_div((mctrack.GetStartX()-HNLPos.X()),ROOT.TMath.Sqrt(covX[0][0])) )
+    h['Vypull'].Fill( old_div((mctrack.GetStartY()-HNLPos.Y()),ROOT.TMath.Sqrt(covX[1][1])) )
 
 # check extrapolation to TimeDet if exists
   if hasattr(ShipGeo,"TimeDet"):
@@ -810,7 +815,7 @@ def HNLKinematics():
     wg = theHNL.GetWeight()
     if not wg>0.: wg=1.
     idMother = abs(sTree.MCTrack[hnlkey-1].GetPdgCode())
-    if not HNLorigin.has_key(idMother): HNLorigin[idMother]=0
+    if idMother not in HNLorigin: HNLorigin[idMother]=0
     HNLorigin[idMother]+=wg
     P = theHNL.GetP()
     Pt = theHNL.GetPt()
@@ -827,7 +832,7 @@ def HNLKinematics():
       h['HNLmomNoW_recTracks'].Fill(Prec)
  theSum = 0
  for x in HNLorigin: theSum+=HNLorigin[x]   
- for x in HNLorigin: print "%4i : %5.4F relative fraction: %5.4F "%(x,HNLorigin[x],HNLorigin[x]/theSum)
+ for x in HNLorigin: print("%4i : %5.4F relative fraction: %5.4F "%(x,HNLorigin[x],old_div(HNLorigin[x],theSum)))
 #
 # initialize ecalStructure
 caloTasks = []
@@ -847,7 +852,7 @@ if ecal:
   ecalReconstructed = sTree.EcalReconstructed
  else:
   calReco = True
-  print "setup calo reconstruction of ecalReconstructed objects"
+  print("setup calo reconstruction of ecalReconstructed objects")
 # Calorimeter reconstruction
  #GeV -> ADC conversion
   ecalDigi=ROOT.ecalDigi("ecalDigi",0)

@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 #inputFile = '/eos/experiment/ship/data/muflux/run_fixedtarget/19april2018/pythia.root'
 #geoFile   = '/eos/experiment/ship/data/muflux/run_fixedtarget/19april2018/geofile_full.root'
+from __future__ import division
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 debug = False#False
 
 withNoStrawSmearing = None # True   for debugging purposes
@@ -26,10 +33,10 @@ def mem_monitor():
     vmsize = int(_vmsize.split()[1])
     #Getting physical memory size  
     pmsize = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print "memory: virtuell = %5.2F MB  physical = %5.2F MB"%(vmsize/1.0E3,pmsize/1.0E3)
+    print("memory: virtuell = %5.2F MB  physical = %5.2F MB"%(old_div(vmsize,1.0E3),old_div(pmsize,1.0E3)))
 
 import ROOT,os,sys,getopt
-import __builtin__ as builtin
+import builtins as builtin
 import rootUtils as ut
 import shipunit as u
 import shipRoot_conf
@@ -42,9 +49,9 @@ try:
            ["ecalDebugDraw","inputFile=","geoFile=","nEvents=","noStrawSmearing","noVertexing","saveDisk","realPR","withT0", "withNTaggerHits=", "withDist2Wire"])
 except getopt.GetoptError:
         # print help information and exit:
-        print ' enter --inputFile=  --geoFile= --nEvents=  --firstEvent=,'
-        print ' noStrawSmearing: no smearing of distance to wire, default on'
-        print ' outputfile will have same name with _rec added'
+        print(' enter --inputFile=  --geoFile= --nEvents=  --firstEvent=,')
+        print(' noStrawSmearing: no smearing of distance to wire, default on')
+        print(' outputfile will have same name with _rec added')
         sys.exit()
 for o, a in opts:
         if o in ("--noVertexing",):
@@ -81,8 +88,8 @@ if not dy:
     dy = float( tmp[1]+'.'+tmp[2] )
   except:
     dy = None
-print 'configured to process ',nEvents,' events from ' ,inputFile, \
-      ' starting with event ',firstEvent, ' with option Yheight = ',dy,' with vertexing',vertexing,' and real pattern reco',realPR=="_PR"
+print('configured to process ',nEvents,' events from ' ,inputFile, \
+      ' starting with event ',firstEvent, ' with option Yheight = ',dy,' with vertexing',vertexing,' and real pattern reco',realPR=="_PR")
 if not inputFile.find('_rec.root') < 0: 
   outFile   = inputFile
   inputFile = outFile.replace('_rec.root','.root') 
@@ -365,7 +372,7 @@ SHiP = MufluxDigiReco.MufluxDigiReco(outFile)
 nEvents   = min(SHiP.sTree.GetEntries(),nEvents)
 # main loop
 for iEvent in range(firstEvent, nEvents):
- if iEvent%1000 == 0 or debug: print 'event ',iEvent
+ if iEvent%1000 == 0 or debug: print('event ',iEvent)
  SHiP.iEvent = iEvent
  rc    = SHiP.sTree.GetEvent(iEvent) 
  if simulation: SHiP.digitize() 

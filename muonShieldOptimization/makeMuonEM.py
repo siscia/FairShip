@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import ROOT,time,os,sys
 nJob   = 1
 nMult  = 1000 # 100000 # number of events / muon
@@ -48,4 +51,4 @@ for k in range(sTree.GetEntries()):
      dTree.Fill()
 fout.cd()  
 dTree.Write()
-print "created",sTree.GetEntries()*nMult," events"
+print("created",sTree.GetEntries()*nMult," events")

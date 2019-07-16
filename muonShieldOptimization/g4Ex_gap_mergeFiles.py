@@ -1,5 +1,10 @@
+from __future__ import division
+from __future__ import print_function
 # result_1Bn_ecut_5.root  		1E9 with Ecut > 5 GeV
 # result_0.1Bn_ecut_0.5.root         	1E8 with Ecut > 0.5 GeV
+from builtins import str
+from builtins import range
+from past.utils import old_div
 Yandex   = False  # False
 Yandex2   = False # summer 2015 production, 10B, Ecut>10GeV, Mo/W/ target
 Yandex3   = True  # spring 2016 production, 10B, Ecut>10GeV, Mo/W/ target, record start of track
@@ -48,11 +53,11 @@ if JPsi:
      nevts = int( l[k+len(tag):].replace(')',''))
     fl.close()
     files[10.].append(path+'pythia8_Geant4_'+run+str(i)+'_10.0.root')
-    stats[10.].append(nevts/BR)
-    ntot += nevts/BR
-    print run+str(i),' --> nevts = ',nevts
+    stats[10.].append(old_div(nevts,BR))
+    ntot += old_div(nevts,BR)
+    print(run+str(i),' --> nevts = ',nevts)
  fnew  = 'pythia8_Geant4_total_Jpsi.root'
- print'total statistics ',ntot/1.E9,' *1E9'
+ print('total statistics ',old_div(ntot,1.E9),' *1E9')
 #
 if Tau:
  BR = 0.0554
@@ -74,11 +79,11 @@ if Tau:
      nevts = int( l[k+len(tag):].replace(')',''))
     fl.close()
     files[0.].append(path+'pythia8_Geant4_'+run+str(i)+'_0.0.root')
-    stats[0.].append(nevts/BR)
-    ntot += nevts/BR
-    print run+str(i),' --> nevts = ',nevts
+    stats[0.].append(old_div(nevts,BR))
+    ntot += old_div(nevts,BR)
+    print(run+str(i),' --> nevts = ',nevts)
  fnew  = 'pythia8_Geant4_total_tauOnly_MoTarget_E0.root'
- print'total statistics ',ntot/1.E9,' *1E9'
+ print('total statistics ',old_div(ntot,1.E9),' *1E9')
 #
 if MoTarget:
  stats =  {}
@@ -104,21 +109,21 @@ if MoTarget:
     for r in os.listdir(path):
       if r.find('.root')<0: continue
       ecut = float(r.split('.root')[0].split('_')[3])
-      if not stats.has_key(ecut):
+      if ecut not in stats:
        stats[ecut] = []
        files[ecut] = []      
     files[ecut].append(path+r)
     stats[ecut].append(nevts)
     ntot += nevts
-    print run+str(i),' --> nevts = ',nevts
+    print(run+str(i),' --> nevts = ',nevts)
  fnew  = 'pythia8_Geant4_total_MoTarget.root'
- print'total statistics ',ntot/1.E9,' *1E9'
+ print('total statistics ',old_div(ntot,1.E9),' *1E9')
 
 ntot = {}
 for ecut in stats:
  ntot[ecut] = 0 
  for s in stats[ecut]: ntot[ecut]+=s
-print ntot
+print(ntot)
 
 h={}
 def makeFinalNtuples(norm=5.E13,opt=''):
@@ -138,7 +143,7 @@ def makeFinalNtuples(norm=5.E13,opt=''):
      fxx = fnew.replace('.root',opt+'.root')
      if opt!='': fxx = fxx.replace('_total','')
      h['N']      = ROOT.TFile(fxx, 'RECREATE')
-     print 'new file created',fxx
+     print('new file created',fxx)
      if afterHadronAbsorber:  
       h['ntuple'] = ROOT.TNtuple("pythia8-Geant4","flux after 3m hadron absorber",tuples)
      else:  
@@ -162,19 +167,19 @@ def makeFinalNtuples(norm=5.E13,opt=''):
      else: Ekin = ROOT.TMath.Sqrt(Psq)
      if Yandex:
       if Ekin < ecut : continue
-      if Ekin > 5. :     weight = norm/(ntot[5.] + ntot[0.5])
-      else         :     weight = norm/(ntot[0.5])
+      if Ekin > 5. :     weight = old_div(norm,(ntot[5.] + ntot[0.5]))
+      else         :     weight = old_div(norm,(ntot[0.5]))
      if Yandex2 or Yandex3:
       if Ekin < ecut : continue
-      weight = norm/(ntot[10.])
-     if JPsi       :     weight = norm/(ntot[10.])
-     if Tau        :     weight = norm/(ntot[0.])
+      weight = old_div(norm,(ntot[10.]))
+     if JPsi       :     weight = old_div(norm,(ntot[10.]))
+     if Tau        :     weight = old_div(norm,(ntot[0.]))
      if MoTarget:
       if Ekin < ecut : continue
-      if Ekin > 50.   :     weight = norm/(ntot[0.5] + ntot[10.] + ntot[20.]+ ntot[50.])
-      elif Ekin > 20.   :   weight = norm/(ntot[0.5] + ntot[10.] + ntot[20.])
-      elif Ekin > 10. :     weight = norm/(ntot[0.5] + ntot[10.])
-      else            :     weight = norm/(ntot[0.5])
+      if Ekin > 50.   :     weight = old_div(norm,(ntot[0.5] + ntot[10.] + ntot[20.]+ ntot[50.]))
+      elif Ekin > 20.   :   weight = old_div(norm,(ntot[0.5] + ntot[10.] + ntot[20.]))
+      elif Ekin > 10. :     weight = old_div(norm,(ntot[0.5] + ntot[10.]))
+      else            :     weight = old_div(norm,(ntot[0.5]))
      vlist.append(weight)
      vlist.append( float(ecut) )
      h['ntuple'].Fill(vlist)

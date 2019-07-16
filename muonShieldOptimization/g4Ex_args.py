@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 debug = False
 withNtuple     = True
 muonNuclear    = True
@@ -194,16 +199,16 @@ class MyRunAction(G4UserRunAction):
 
   def EndOfRunAction(self, run):
     global debug,nevTot
-    print "*** End of Run"
-    print "- Run summary : (id= %d, #events= %d)" \
-          % (run.GetRunID(), nevTot)
+    print("*** End of Run")
+    print("- Run summary : (id= %d, #events= %d)" \
+          % (run.GetRunID(), nevTot))
     h['ntuple'].Fill(-1., float(nevTot) )
     h['ntuple'].Write()
-    print 'lepton masses used'
+    print('lepton masses used')
     for l in leptons:
           G4particle = G4PrimaryParticle( l )
           G4def      = G4particle.GetParticleDefinition()
-          print l, G4def.GetParticleName(),  G4particle.GetMass()
+          print(l, G4def.GetParticleName(),  G4particle.GetMass())
 
 # ------------------------------------------------------------------
 class MyEventAction(G4UserEventAction):
@@ -214,10 +219,10 @@ class MyEventAction(G4UserEventAction):
     # self.myPrintout(event)
   def myPrintout(self, event):
     prim = event.GetPrimaryVertex()
-    print 'vertex ',prim.GetX0()/m,prim.GetY0()/m,prim.GetZ0()/m 
+    print('vertex ',old_div(prim.GetX0(),m),old_div(prim.GetY0(),m),old_div(prim.GetZ0(),m)) 
     for k in range( prim.GetNumberOfParticle() ):
       p = prim.GetPrimary(k) 
-      print 'event',p.GetPDGcode(),p.GetPx()/GeV,p.GetPy()/GeV,p.GetPz()/GeV
+      print('event',p.GetPDGcode(),old_div(p.GetPx(),GeV),old_div(p.GetPy(),GeV),old_div(p.GetPz(),GeV))
 # ------------------------------------------------------------------
 class MySteppingAction(G4UserSteppingAction):
   "My Stepping Action"
@@ -231,7 +236,7 @@ class MyTrackingAction(G4UserTrackingAction):
     pass  
  def PreUserTrackingAction(self,atrack):
    # self.myPrintout(atrack)
-   if atrack.GetTotalEnergy()/GeV < ecut : 
+   if old_div(atrack.GetTotalEnergy(),GeV) < ecut : 
       G4TrackingManager().SetStoreTrajectory(False) 
       atrack.SetTrackStatus(atrack.GetTrackStatus().fStopAndKill)
    part         = atrack.GetDynamicParticle()
@@ -243,7 +248,7 @@ class MyTrackingAction(G4UserTrackingAction):
  def myPrintout(self, atrack):
    part         = atrack.GetDynamicParticle()
    pid          = part.GetPDGcode()
-   print 'TA',pid,atrack.GetTotalEnergy()/GeV,ecut*GeV 
+   print('TA',pid,old_div(atrack.GetTotalEnergy(),GeV),ecut*GeV) 
 
 # ------------------------------------------------------------------
 class ScoreSD(G4VSensitiveDetector):
@@ -263,15 +268,15 @@ class ScoreSD(G4VSensitiveDetector):
 #
       # primPart = part.GetPrimaryParticle()
       w = track.GetWeight()
-      parentid = int(w)/100000-10000
+      parentid = old_div(int(w),100000)-10000
       pythiaid = int(w)%100000-10000
-      h['ntuple'].Fill(float(pid), float(mom.x/GeV),float(mom.y/GeV),float(mom.z/GeV),
-                   float(pos.x/m),float(pos.y/m),float(pos.z/m),pythiaid,parentid)
+      h['ntuple'].Fill(float(pid), float(old_div(mom.x,GeV)),float(old_div(mom.y,GeV)),float(old_div(mom.z,GeV)),
+                   float(old_div(pos.x,m)),float(old_div(pos.y,m)),float(old_div(pos.z,m)),pythiaid,parentid)
       #print 'xxx',pid, float(mom.x/GeV),float(mom.y/GeV),float(mom.z/GeV),pythiaid,parentid,float(pos.x/m),float(pos.y/m),float(pos.z/m)
       #myPythia.EventListing()
 
 def ConstructGeom():
-  print "* Constructing geometry..."
+  print("* Constructing geometry...")
   world_r = 100.*m 
   # reset world material
   vac = G4Material.GetMaterial("G4_Galactic")
@@ -354,8 +359,8 @@ scoreLog.SetSensitiveDetector(sens)
 t0 = time.time()
 gRunManager.BeamOn(nev)
 t1 = time.time()
-print 'Time used',t1-t0, ' seconds' 
+print('Time used',t1-t0, ' seconds') 
 for x in myTimer: 
-  print x,myTimer[x]
+  print(x,myTimer[x])
 
 logger.info("output directory: %s" % work_dir)

@@ -1,9 +1,11 @@
 # utility to simulate response of the veto systems
+from builtins import range
+from builtins import object
 import ROOT
 import shipunit as u
 from array import array
 
-class Task:
+class Task(object):
  "initialize and give response of the veto systems"
  def __init__(self,t):
   self.UVTefficiency = 0.999 # Upstream Veto tagger: 99.9% efficiency picked up from TP
