@@ -15,7 +15,9 @@ build-cc7:
   script:
     - aliBuild -c shipdist/ --default fairship build FairShip --always-prefer-system --debug
   artifacts:
-    - sw/
+    paths:
+      - sw/
+    expire_in: 1 week
 
 test-cc7:
   tags:
