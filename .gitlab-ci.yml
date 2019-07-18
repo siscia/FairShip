@@ -29,7 +29,7 @@ test-cc7:
   before_script:
     - WORK_DIR=/cvmfs/ship.cern.ch/2_July2019/sw/ source /cvmfs/ship.cern.ch/2_July2019/sw/slc7_x86-64/FairShip/latest/etc/profile.d/init.sh
     - pip install --upgrade --user alibuild
-    - alienv enter FairShip/latest-fairship
+    - eval `alienv load FairShip/latest-fairship`
   script:
     - python $FAIRSHIP/macro/run_simScript.py --test
     - python $FAIRSHIP/macro/ShipReco.py -f ship.conical.Pythia8-TGeant4.root -g geofile_full.conical.Pythia8-TGeant4.root
