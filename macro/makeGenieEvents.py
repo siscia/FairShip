@@ -1,5 +1,8 @@
 #!/usr/bin/env python 
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import ROOT,os,sys,getopt,time
 import shipunit as u
 import shipRoot_conf
@@ -41,7 +44,7 @@ elif target == 'lead':
     targetcode = '1000822040[0.014],1000822060[0.241],1000822070[0.221],1000822080[0.524]'
 else:
     print('only iron and lead target available')
-    1/0
+    old_div(1,0)
 
 pdg  = ROOT.TDatabasePDG()
 pDict = {}
@@ -54,7 +57,7 @@ for x in [14,12]:
     sDict[-x] = pdg.GetParticle(-x).GetName()
     pDict[x]  = "10"+str(x)
     pDict[-x] = "20"+str(x)
-    nuOverNubar[x] = f.Get(pDict[x]).GetSumOfWeights()/f.Get(pDict[-x]).GetSumOfWeights()
+    nuOverNubar[x] = old_div(f.Get(pDict[x]).GetSumOfWeights(),f.Get(pDict[-x]).GetSumOfWeights())
 f.Close()
 
 work_dir = args.work_dir 
@@ -85,7 +88,7 @@ def makeEvents(nevents = 100):
         # stop at 350 GeV, otherwise strange warning about "Lower energy neutrinos have a higher probability of 
         # interacting than those at higher energy. pmaxLow(E=386.715)=2.157e-13 and  pmaxHigh(E=388.044)=2.15623e-13"
         N = nevents
-        if p<0: N = int(nevents / nuOverNubar[abs(p)])
+        if p<0: N = int(old_div(nevents, nuOverNubar[abs(p)]))
         cmd = "gevgen -n "+str(N)+" -p "+str(p)+" -t "+targetcode +" -e  0.5,350  --run "+str(run)+" -f "+neutrinos+","+pDict[p]+ \
                   " --cross-sections "+splines+" --message-thresholds $GENIE/config/Messenger_laconic.xml" +" --seed "+str(seed)
         print("start genie ",cmd)

@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from past.builtins import cmp
+from past.utils import old_div
 import ROOT
 import shipunit as u
 
@@ -37,6 +40,6 @@ def extrapolateToPlane(fT,z):
             if not rc or z>z_ecal:
                 # use linear extrapolation
                 px,py,pz  = mom.X(),mom.Y(),mom.Z()
-                lam = (z-pos.Z())/pz
+                lam = old_div((z-pos.Z()),pz)
                 pos = ROOT.TVector3( pos.X()+lam*px, pos.Y()+lam*py, z )
     return rc,pos,mom

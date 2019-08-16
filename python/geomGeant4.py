@@ -1,4 +1,8 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import shipunit as u
 from array import array
 import hepunit as G4Unit
@@ -39,9 +43,9 @@ def setMagnetField(flag=None):
     for v in vols:
         field =  v.GetField()
         if not field: continue
-        bx = field.GetFieldValue()[0]/u.tesla*G4Unit.tesla
-        by = field.GetFieldValue()[1]/u.tesla*G4Unit.tesla
-        bz = field.GetFieldValue()[2]/u.tesla*G4Unit.tesla
+        bx = old_div(field.GetFieldValue()[0],u.tesla*G4Unit.tesla)
+        by = old_div(field.GetFieldValue()[1],u.tesla*G4Unit.tesla)
+        bz = old_div(field.GetFieldValue()[2],u.tesla*G4Unit.tesla)
         magFieldIron = G4UniformMagField(G4ThreeVector(bx,by,bz))
         FieldIronMgr = G4FieldManager(magFieldIron)
         FieldIronMgr.CreateChordFinder(magFieldIron)
@@ -86,8 +90,8 @@ def printWF(vl,alreadyPrinted,onlyWithField=True):
     alreadyPrinted[vname]=mvl
     if mvl !='cave': vln = mvl+'/'+vln   
     lvl  = vl.GetLogicalVolume()
-    cvol = lvl.GetSolid().GetCubicVolume()/G4Unit.m3
-    M    = lvl.GetMass()/G4Unit.kg
+    cvol = old_div(lvl.GetSolid().GetCubicVolume(),G4Unit.m3)
+    M    = old_div(lvl.GetMass(),G4Unit.kg)
     fm = lvl.GetFieldManager()
     if not fm and onlyWithField: return magnetMass
     if M  < 5000.:   print('%-35s volume = %5.2Fm3  mass = %5.2F kg'%(vln,cvol,M))
@@ -95,14 +99,14 @@ def printWF(vl,alreadyPrinted,onlyWithField=True):
     if fm:  
         fi = fm.GetDetectorField() 
         if hasattr(fi,'GetConstantFieldValue'):
-            print('   Magnetic field:',fi.GetConstantFieldValue()/G4Unit.tesla)
+            print('   Magnetic field:',old_div(fi.GetConstantFieldValue(),G4Unit.tesla))
         else:
             serv = ROOT.TG4GeometryServices.Instance()
             pos = array('d',[0,0,0])
             bf  = array('d',[0,0,0])
             name = ROOT.G4String(lvl.GetName().__str__())
             serv.GetField(name,pos,bf)
-            print('   Magnetic field Bx,By,Bz: %4.2F %4.2F %4.2F'%(bf[0]/G4Unit.tesla,bf[1]/G4Unit.tesla,bf[2]/G4Unit.tesla))
+            print('   Magnetic field Bx,By,Bz: %4.2F %4.2F %4.2F'%(old_div(bf[0],G4Unit.tesla),old_div(bf[1],G4Unit.tesla),old_div(bf[2],G4Unit.tesla)))
     #if vl.GetName().__str__()[0:3]=='Mag': magnetMass =  M # only count volumes starting with Mag
     name = vl.GetName().__str__()
     if "_" in name and "Mag" in name.split('_')[1]: magnetMass =  M # only count volumes starting with Mag
@@ -202,8 +206,8 @@ def printVMCFields():
             centre = array('d',[0.0, 0.0, 0.0])
             B = array('d',[0.0, 0.0, 0.0])
             field.Field(centre, B)
-            print('Volume {0} has B = ({1}, {2}, {3}) T'.format(v.GetName(), B[0]/u.tesla,
-                                                                B[1]/u.tesla, B[2]/u.tesla))
+            print('Volume {0} has B = ({1}, {2}, {3}) T'.format(v.GetName(), old_div(B[0],u.tesla),
+                                                                old_div(B[1],u.tesla), old_div(B[2],u.tesla)))
 
 def getRunManager():
     return G4RunManager.GetRunManager()
@@ -220,7 +224,7 @@ def debug():
         vmap[vl.GetName().__str__()] = vl
         print(da, vl.GetName())
     lvl = vmap['MagB'].GetLogicalVolume() 
-    print(lvl.GetMass()/G4Unit.kg,lvl.GetMaterial().GetName())
+    print(old_div(lvl.GetMass(),G4Unit.kg),lvl.GetMaterial().GetName())
     print(lvl.GetFieldManager())
 #
     for da in range(world.GetNoDaughters()):

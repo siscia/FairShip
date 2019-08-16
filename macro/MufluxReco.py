@@ -2,6 +2,12 @@
 #inputFile = '/eos/experiment/ship/data/muflux/run_fixedtarget/19april2018/pythia.root'
 #geoFile   = '/eos/experiment/ship/data/muflux/run_fixedtarget/19april2018/geofile_full.root'
 from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
 debug = False#False
 
 withNoStrawSmearing = None # True   for debugging purposes
@@ -27,10 +33,10 @@ def mem_monitor():
     vmsize = int(_vmsize.split()[1])
     #Getting physical memory size  
     pmsize = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    print("memory: virtuell = %5.2F MB  physical = %5.2F MB"%(vmsize/1.0E3,pmsize/1.0E3))
+    print("memory: virtuell = %5.2F MB  physical = %5.2F MB"%(old_div(vmsize,1.0E3),old_div(pmsize,1.0E3)))
 
 import ROOT,os,sys,getopt
-import __builtin__ as builtin
+import builtins as builtin
 import rootUtils as ut
 import shipunit as u
 import shipRoot_conf

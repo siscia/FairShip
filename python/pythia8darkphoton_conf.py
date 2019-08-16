@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import ROOT, os, sys
 import shipunit as u
 import readDecayTable
@@ -150,9 +153,9 @@ def configure(P8gen, mass, epsilon, inclusive, deepCopy=False):
     if inclusive=="qcd":
         P8gen.SetParameters(str(P8gen.GetDPId())+":m0 = "+str(mass))
         #P8gen.SetParameters(str(P8gen.GetDPId())+":mWidth = "+str(u.mm/ctau))
-        P8gen.SetParameters(str(P8gen.GetDPId())+":mWidth = "+str(u.hbarc/ctau))
+        P8gen.SetParameters(str(P8gen.GetDPId())+":mWidth = "+str(old_div(u.hbarc,ctau)))
         P8gen.SetParameters(str(P8gen.GetDPId())+":mMin = 0.001")
-        P8gen.SetParameters(str(P8gen.GetDPId())+":tau0 = "+str(ctau/u.mm))
+        P8gen.SetParameters(str(P8gen.GetDPId())+":tau0 = "+str(old_div(ctau,u.mm)))
         #P8gen.SetParameters("ParticleData:modeBreitWigner = 0")   
         #P8gen.SetParameters(str(P8gen.GetDPId())+":isResonance = false")
         #P8gen.SetParameters(str(P8gen.GetDPId())+":all = A A 3 0 0 "+str(mass)+" 0.0 0.0 0.0 "+str(ctau/u.mm)+"  0   1   0   1   0") 
@@ -160,8 +163,8 @@ def configure(P8gen, mass, epsilon, inclusive, deepCopy=False):
         P8gen.SetParameters(str(P8gen.GetDPId())+":onMode = off")
         #print 'qcd inclusive test'
     else:
-        P8gen.SetParameters(str(P8gen.GetDPId())+":new = A A 3 0 0 "+str(mass)+" 0.0 0.0 0.0 "+str(ctau/u.mm)+"  0   1   0   1   0") 
-        if debug: cf.write('P8gen.SetParameters("'+str(P8gen.GetDPId())+':new = A A 3 0 0 '+str(mass)+' 0.0 0.0 0.0 '+str(ctau/u.mm)+'  0   1   0   1   0") \n')
+        P8gen.SetParameters(str(P8gen.GetDPId())+":new = A A 3 0 0 "+str(mass)+" 0.0 0.0 0.0 "+str(old_div(ctau,u.mm))+"  0   1   0   1   0") 
+        if debug: cf.write('P8gen.SetParameters("'+str(P8gen.GetDPId())+':new = A A 3 0 0 '+str(mass)+' 0.0 0.0 0.0 '+str(old_div(ctau,u.mm))+'  0   1   0   1   0") \n')
         #if (inclusive=="pbrem"): 
         ### Do not set as resonance: decays to hadron doesn't work properly below 0.7 GeV.
         #   P8gen.SetParameters(str(P8gen.GetDPId())+":isResonance = true")

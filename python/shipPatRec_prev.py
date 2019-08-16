@@ -4,6 +4,10 @@
 #for documentation, see CERN-SHiP-NOTE-2015-002, https://cds.cern.ch/record/2005715/files/main.pdf
 #17-04-2015 comments to EvH
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import ROOT, os
 import shipunit  as u
 import math
@@ -210,7 +214,7 @@ def initialize(fGeo):
 
     VetoStationZ = ShipGeo.vetoStation.z
     if debug==1: print("VetoStation midpoint z=",VetoStationZ)
-    VetoStationEndZ=VetoStationZ+(ShipGeo.strawtubes.DeltazView+ShipGeo.strawtubes.OuterStrawDiameter)/2
+    VetoStationEndZ=VetoStationZ+old_div((ShipGeo.strawtubes.DeltazView+ShipGeo.strawtubes.OuterStrawDiameter),2)
     for i in range(1,5):   
         if i==1: TStationz = ShipGeo.TrackStation1.z
         if i==2: TStationz = ShipGeo.TrackStation2.z  
@@ -224,8 +228,8 @@ def initialize(fGeo):
                         Zpos = TStationz+(vnb-3./2.)*ShipGeo.strawtubes.DeltazView+(float(pnb)-1./2.)*ShipGeo.strawtubes.DeltazPlane+(float(lnb)-1./2.)*ShipGeo.strawtubes.DeltazLayer 
                         print("TStation=",i,"view=",vnb,"plane=",pnb,"layer=",lnb,"z=",Zpos)
 
-    TStation1StartZ=zlayer[1][0]-ShipGeo.strawtubes.OuterStrawDiameter/2
-    TStation4EndZ=z34layer[16][0]+ShipGeo.strawtubes.OuterStrawDiameter/2
+    TStation1StartZ=zlayer[1][0]-old_div(ShipGeo.strawtubes.OuterStrawDiameter,2)
+    TStation4EndZ=z34layer[16][0]+old_div(ShipGeo.strawtubes.OuterStrawDiameter,2)
 
     return 
 
@@ -239,7 +243,7 @@ def getReconstructibleTracks(iEvent,sTree,sGeo):
 
     if debug==1: print("event nbr",iEvent,"has",nMCTracks,"tracks")
     #1. MCTrackIDs: list of tracks decaying after the last tstation and originating before the first
-    for i in reversed(range(nMCTracks)):
+    for i in reversed(list(range(nMCTracks))):
         atrack = sTree.MCTrack.At(i) 
         #for 3 prong decays check if its a nu
         if threeprong == 1:    
@@ -366,19 +370,19 @@ def getReconstructibleTracks(iEvent,sTree,sGeo):
 
     #6. Make list of tracks with hits in in station 1,2,3 & 4	    	
     tracks_with_hits_in_all_stations=[]  
-    for key in hits1.keys():
+    for key in list(hits1.keys()):
         if (key in hits2 and key in hits3 ) and key in hits4:
             if key not in tracks_with_hits_in_all_stations and key not in trackoutsidestations:
                 tracks_with_hits_in_all_stations.append(key) 
-    for key in hits2.keys():
+    for key in list(hits2.keys()):
         if (key in hits1 and key in hits3 ) and key in hits4:
             if key not in tracks_with_hits_in_all_stations and key not in trackoutsidestations:
                 tracks_with_hits_in_all_stations.append(key) 
-    for key in hits3.keys():
+    for key in list(hits3.keys()):
         if ( key in hits2 and key in hits1 ) and key in hits4:
             if key not in tracks_with_hits_in_all_stations and key not in trackoutsidestations:
                 tracks_with_hits_in_all_stations.append(key) 
-    for key in hits4.keys():
+    for key in list(hits4.keys()):
         if (key in hits2 and key in hits3) and key in hits1:
             if key not in tracks_with_hits_in_all_stations and key not in trackoutsidestations:
                 tracks_with_hits_in_all_stations.append(key) 
@@ -598,35 +602,35 @@ def SmearHits(iEvent,sTree,modules,SmearedHits,ReconstructibleMCTracks):
             if items in ReconstructibleMCTracks: total1hits=total1hits+station1hits[items]     
         else : total1hits=total1hits+station1hits[items]
     if len(station1hits) > 0 : 
-        hits1pertrack=total1hits/len(station1hits)
+        hits1pertrack=old_div(total1hits,len(station1hits))
     for items in station12xhits:
         if monitor==True:
             if items in ReconstructibleMCTracks: total12xhits=total12xhits+station12xhits[items]     
         else: total12xhits=total12xhits+station12xhits[items]
-    if len(station12xhits) > 0 : hits12xpertrack=total12xhits/len(station12xhits)
+    if len(station12xhits) > 0 : hits12xpertrack=old_div(total12xhits,len(station12xhits))
     for items in station12yhits:
         if monitor==True:
             if items in ReconstructibleMCTracks: total12yhits=total12yhits+station12yhits[items]        
         else: total12yhits=total12yhits+station12yhits[items]
-    if len(station12yhits) > 0 : hits12ypertrack=total12yhits/len(station12yhits)
+    if len(station12yhits) > 0 : hits12ypertrack=old_div(total12yhits,len(station12yhits))
     for items in station2hits:
         if monitor==True:
             if items in ReconstructibleMCTracks: total2hits=total2hits+station2hits[items]
         else: total2hits=total2hits+station2hits[items]
     if len(station2hits) > 0 : 
-        hits2pertrack=total2hits/len(station2hits)
+        hits2pertrack=old_div(total2hits,len(station2hits))
     for items in station3hits:
         if monitor==True:
             if items in ReconstructibleMCTracks: total3hits=total3hits+station3hits[items]     
         else: total3hits=total3hits+station3hits[items]
     if len(station3hits) > 0 : 
-        hits3pertrack=total3hits/len(station3hits)
+        hits3pertrack=old_div(total3hits,len(station3hits))
     for items in station4hits:
         if monitor==True:
             if items in ReconstructibleMCTracks: total4hits=total4hits+station4hits[items]  
         else:  total4hits=total4hits+station4hits[items]
     if len(station4hits) > 0 : 
-        hits4pertrack=total4hits/len(station4hits)  
+        hits4pertrack=old_div(total4hits,len(station4hits))  
 
     rc=h['hits1-4'].Fill(hits1pertrack+hits2pertrack+hits3pertrack+hits4pertrack)  
     rc=h['hits1'].Fill(hits1pertrack)  
@@ -695,12 +699,12 @@ def PatRec(firsttwo,zlayer,zlayerv2,StrawRaw,StrawRawLink,ReconstructibleMCTrack
 
     for item in StrawRaw:  
         #y hits for horizontal straws
-        rawhits[j]=copy.deepcopy(((StrawRaw[item][1]+StrawRaw[item][4])/2,(StrawRaw[item][2]+StrawRaw[item][5])/2,StrawRaw[item][6]))
+        rawhits[j]=copy.deepcopy((old_div((StrawRaw[item][1]+StrawRaw[item][4]),2),old_div((StrawRaw[item][2]+StrawRaw[item][5]),2),StrawRaw[item][6]))
         if firsttwo==True: 
             if debug==1: print("rawhits[",j,"]=",rawhits[j],"trackid",StrawRawLink[item][0].GetTrackID(),"strawname",StrawRawLink[item][0].GetDetectorID(),"true x",StrawRawLink[item][0].GetX(),"true y",StrawRawLink[item][0].GetY(),"true z",StrawRawLink[item][0].GetZ())
         j=j+1    
 
-    sortedrawhits=OrderedDict(sorted(rawhits.items(),key=lambda t:t[1][1])) 
+    sortedrawhits=OrderedDict(sorted(list(rawhits.items()),key=lambda t:t[1][1])) 
     if debug==1: 
         print(" ")
         print("horizontal view (y) hits ordered by plane: plane nr, zlayer, hits")
@@ -858,7 +862,7 @@ def PatRec(firsttwo,zlayer,zlayerv2,StrawRaw,StrawRawLink,ReconstructibleMCTrack
             if debug==1: print("rawxhits[",j,"]=",rawxhits[j],"trackid",StrawRawLink[item][0].GetTrackID(),"true x",StrawRawLink[item][0].GetX(),"true y",StrawRawLink[item][0].GetY())
         j=j+1  
 
-    sortedrawxhits=OrderedDict(sorted(rawxhits.items(),key=lambda t:t[1][4])) 
+    sortedrawxhits=OrderedDict(sorted(list(rawxhits.items()),key=lambda t:t[1][4])) 
 
     if debug==1: print("stereo view hits ordered by plane:")
     for i in range(i1,i2+1):
@@ -922,8 +926,8 @@ def PatRec(firsttwo,zlayer,zlayerv2,StrawRaw,StrawRawLink,ReconstructibleMCTrack
         py=0.
         pz=0.
         m=0
-        if firsttwo==True: looplist=reversed(range(len(trcandv1[t]))) 
-        else: looplist=range(len(trcandv1[t])) 
+        if firsttwo==True: looplist=reversed(list(range(len(trcandv1[t])))) 
+        else: looplist=list(range(len(trcandv1[t]))) 
         for ipl in looplist:      
             indx= trcandv1[t][ipl]
             if indx>-1: 
@@ -939,7 +943,7 @@ def PatRec(firsttwo,zlayer,zlayerv2,StrawRaw,StrawRawLink,ReconstructibleMCTrack
                 ptmp=math.sqrt(px**2+py**2+pz**2)
                 if debug==1:
                     print("      p",ptmp,"px",px,"py",py,"pz",pz)
-                if tan==0. : tan=py/pz
+                if tan==0. : tan=old_div(py,pz)
                 if cst==0. : cst=StrawRawLink[hits[ipl][2][indx]][0].GetY()-tan*zlayer[ipl][0]
                 rc=h['disthittoYviewMCtrack'].Fill(dist2line(tan,cst,hitpoint))
 
@@ -1055,8 +1059,8 @@ def PatRec(firsttwo,zlayer,zlayerv2,StrawRaw,StrawRawLink,ReconstructibleMCTrack
             pzMC=0.
             stereotanMCv=0.
             stereocstMCv=0.
-            if firsttwo==True: looplist=reversed(range(len(trcandv2[t1]))) 
-            else: looplist=range(len(trcandv2[t1]))  
+            if firsttwo==True: looplist=reversed(list(range(len(trcandv2[t1])))) 
+            else: looplist=list(range(len(trcandv2[t1])))  
             for ipl in looplist:      
                 indx= trcandv2[t1][ipl]
                 if indx>-1:       
@@ -1064,7 +1068,7 @@ def PatRec(firsttwo,zlayer,zlayerv2,StrawRaw,StrawRawLink,ReconstructibleMCTrack
                     rc=h['disthittostereotrack'].Fill(dist2line(stereofitt,stereofitc,hitpointx)) 
                     if pxMC==0. :  pxMC=StrawRawLink[v2hits[ipl][2][indx]][0].GetPx()
                     if pzMC ==0. : pzMC=StrawRawLink[v2hits[ipl][2][indx]][0].GetPz()
-                    if stereotanMCv==0. : stereotanMCv=pxMC/pzMC
+                    if stereotanMCv==0. : stereotanMCv=old_div(pxMC,pzMC)
                     if stereocstMCv==0. : stereocstMCv=StrawRawLink[v2hits[ipl][2][indx]][0].GetX()-stereotanMCv*zlayerv2[ipl][0]
                     rc=h['disthittostereoMCtrack'].Fill(dist2line(stereotanMCv,stereocstMCv,hitpointx))
 
@@ -1275,7 +1279,7 @@ def TrackFit(hitPosList,theTrack,charge,pinv):
     pval = fitStatus.getPVal()
 
     #pval close to 0 indicates a bad fit
-    chi2        = fitStatus.getChi2()/nmeas
+    chi2        = old_div(fitStatus.getChi2(),nmeas)
 
     rc=h['chi2fittedtracks'].Fill(chi2)
     rc=h['pvalfittedtracks'].Fill(pval) 
@@ -1310,7 +1314,7 @@ def ptrack(zlayer,ptrackhits,nrwant,window):
 
 # get first and last plane number (needs to be consecutive, and also contains empty planes
 # should be included in the list!
-    planes=zlayer.keys()
+    planes=list(zlayer.keys())
     planes.sort()
     i_1=planes[0]
     i_2=planes[len(planes)-1]
@@ -1345,7 +1349,7 @@ def ptrack(zlayer,ptrackhits,nrwant,window):
                                 if  ptrackhits[ilast][1][il]==0:	     
                                     xlast= ptrackhits[ilast][0][il]
                                     nrhitsfound=2
-                                    tancand=(xlast-xfirst)/dz
+                                    tancand=old_div((xlast-xfirst),dz)
                                     #fill temporary hit list for track-candidate with -1
                                     trcand=(i_2-i_1+2)*[-1]
                                     #loop over in between planes
@@ -1404,7 +1408,7 @@ def line2plane(fitt,fitc,uvview,zuv):
     for i in range(len(yb)):
     #f2=(term-yb[i])/(yt[i]-yb[i])
     #xint=xb[i]+f2*(xt[i]-xb[i])
-        f2=(term-yb[i])/(yb[i]-yt[i])
+        f2=old_div((term-yb[i]),(yb[i]-yt[i]))
         xint=xb[i]+f2*(xb[i]-xt[i])
         c=uvview[4][i]
         #do they cross inside sensitive volume defined by top/bottom of straw?
@@ -1433,19 +1437,19 @@ def fitline(indices,xhits,zhits,resolution):
         if indx>-1:
                 #n+=1
                 #weigh points accordint to their distance to the wire
-            weight=1/math.sqrt(xhits[ipl][3][indx]**2+resolution**2)
+            weight=old_div(1,math.sqrt(xhits[ipl][3][indx]**2+resolution**2))
             x=zhits[ipl][0]
             y=xhits[ipl][0][indx]
             sumweight+=weight
             sumweightx+=weight*x
             sumweighty+=weight*y
-    xmean=sumweightx/sumweight
-    ymean=sumweighty/sumweight	 
+    xmean=old_div(sumweightx,sumweight)
+    ymean=old_div(sumweighty,sumweight)	 
     for ipl in range(1,len(indices)):
         indx= indices[ipl]
         if indx>-1:
             n+=1
-            weight=1/math.sqrt(xhits[ipl][3][indx]**2+resolution**2)
+            weight=old_div(1,math.sqrt(xhits[ipl][3][indx]**2+resolution**2))
             x=zhits[ipl][0]
             y=xhits[ipl][0][indx]       
             Dw+=weight*(x-xmean)**2
@@ -1454,10 +1458,10 @@ def fitline(indices,xhits,zhits,resolution):
             sumx2+=zhits[ipl][0]**2
             sumxy+=xhits[ipl][0][indx]*zhits[ipl][0]
             sumy+=xhits[ipl][0][indx]
-    fitt=(1/Dw)*term
+    fitt=(old_div(1,Dw))*term
     fitc=ymean-fitt*xmean	 
-    unweightedfitt=(sumxy-sumx*sumy/n)/(sumx2-sumx**2/n)
-    unweightedfitc=(sumy-fitt*sumx)/n
+    unweightedfitt=old_div((sumxy-old_div(sumx*sumy,n)),(sumx2-old_div(sumx**2,n)))
+    unweightedfitc=old_div((sumy-fitt*sumx),n)
     return fitt,fitc
 
 def IP(s, t, b):
@@ -1509,7 +1513,7 @@ def match_tracks(t1,t2,zmagnet,Bdl):
     dy=y1m-y2m
 
     alpha=math.atan(t1[4])-math.atan(t2[4])
-    pinv=math.sin(alpha)/(Bdl*0.3)
+    pinv=old_div(math.sin(alpha),(Bdl*0.3))
     return dx,dy,alpha,pinv
 
 def dist2line(tan,cst,points):
@@ -1617,7 +1621,7 @@ def execute(SmearedHits,sTree,ReconstructibleMCTracks):
         tracksfound=[]
         if monitor==True:
             for item in ReconstructibleMCTracks:
-                for value in trackid12.values():  
+                for value in list(trackid12.values()):  
                     if item == value and item not in tracksfound:
                         reconstructibles12+=1
                         tracksfound.append(item)
@@ -1632,7 +1636,7 @@ def execute(SmearedHits,sTree,ReconstructibleMCTracks):
         tracksfound=[]      
         if monitor==True:
             for item in ReconstructibleMCTracks:
-                for value in trackid34.values():  
+                for value in list(trackid34.values()):  
                     if item == value and item not in tracksfound:
                         reconstructibles34+=1 
                         tracksfound.append(item)
@@ -1720,7 +1724,7 @@ def execute(SmearedHits,sTree,ReconstructibleMCTracks):
                     #match found between track nr item in stations 12 & item1 in stations 34 
                     #get charge from deflection and check if it corresponds to the MC truth
                     #field is horizontal (x) hence deflection in y
-                    tantheta=(tgy1-tgy2)/(1+tgy1*tgy2)
+                    tantheta=old_div((tgy1-tgy2),(1+tgy1*tgy2))
                     if tantheta>0 : 
                         charge="-1" 
                         if charge34>0: 
@@ -1756,7 +1760,7 @@ def execute(SmearedHits,sTree,ReconstructibleMCTracks):
                             if v==trackid34[item1]: MatchedReconstructibleMCTracks[k]=v
                     p2true=p2true*int(charge)
                     rc=h['pinvvstruepinv'].Fill(p2true,pinv)
-                    if math.fabs(pinv) > 0.0 : rc=h['ptrue-p/ptrue'].Fill((pinv-p2true)/pinv)
+                    if math.fabs(pinv) > 0.0 : rc=h['ptrue-p/ptrue'].Fill(old_div((pinv-p2true),pinv))
 
                     if cheated==False: 
                         hitPosList=[]             
@@ -1787,13 +1791,13 @@ def execute(SmearedHits,sTree,ReconstructibleMCTracks):
                         rep = ROOT.genfit.RKTrackRep(pdg)   
                         posM = ROOT.TVector3(0, 0, 0)
                         #would be the correct way but due to uncertainties on small angles the sqrt is often negative
-                        if math.fabs(pinv) > 0.0 : momM = ROOT.TVector3(0,0,int(charge)/pinv)
+                        if math.fabs(pinv) > 0.0 : momM = ROOT.TVector3(0,0,old_div(int(charge),pinv))
                         else: momM = ROOT.TVector3(0,0,999)   
                         covM = ROOT.TMatrixDSym(6)
                         resolution = ShipGeo.strawtubes.sigma_spatial  
                         for  i in range(3):   covM[i][i] = resolution*resolution
                         covM[0][0]=resolution*resolution*100.
-                        for  i in range(3,6): covM[i][i] = ROOT.TMath.Power(resolution / nM / ROOT.TMath.Sqrt(3), 2)
+                        for  i in range(3,6): covM[i][i] = ROOT.TMath.Power(old_div(resolution, nM / ROOT.TMath.Sqrt(3)), 2)
                         # smeared start state  
                         stateSmeared = ROOT.genfit.MeasuredStateOnPlane(rep)
                         rep.setPosMomCov(stateSmeared, posM, momM, covM)

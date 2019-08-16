@@ -1,4 +1,9 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import os
 import ROOT
 import MufluxPatRec
@@ -25,7 +30,7 @@ def StripX(x):
     V_STRIP_OFF = 0.200
     NR_VER_STRIPS = 184
     total_width = (NR_VER_STRIPS - 2) * STRIP_XWIDTH + EXT_STRIP_XWIDTH_L + EXT_STRIP_XWIDTH_R + (NR_VER_STRIPS - 1) * V_STRIP_OFF
-    x_start = (total_width - EXT_STRIP_XWIDTH_R + EXT_STRIP_XWIDTH_L) / 2
+    x_start = old_div((total_width - EXT_STRIP_XWIDTH_R + EXT_STRIP_XWIDTH_L), 2)
     # calculating strip as an integer
     strip_x = (x_start - EXT_STRIP_XWIDTH_L + 1.5 * STRIP_XWIDTH + V_STRIP_OFF - x)//(STRIP_XWIDTH + V_STRIP_OFF)
     if not (0 < strip_x <= NR_VER_STRIPS):
@@ -40,14 +45,14 @@ def StripY(y):
     H_STRIP_OFF = 0.1983
     NR_HORI_STRIPS = 116
     total_height = (NR_HORI_STRIPS - 2) * STRIP_YWIDTH + 2 * EXT_STRIP_YWIDTH + (NR_HORI_STRIPS - 1) * H_STRIP_OFF
-    y_start = total_height / 2
+    y_start = old_div(total_height, 2)
     strip_y = (y_start - EXT_STRIP_YWIDTH + 1.5 * STRIP_YWIDTH + H_STRIP_OFF - y)//(STRIP_YWIDTH + H_STRIP_OFF)
     if not (0 < strip_y <= NR_HORI_STRIPS):
         print("WARNING: Y strip outside range!")
         strip_y = 0
     return int(strip_y)
 
-class MufluxDigiReco:
+class MufluxDigiReco(object):
     " convert FairSHiP MC hits / digitized hits to measurements"
     def __init__(self,fout):
 
@@ -191,7 +196,7 @@ class MufluxDigiReco:
 
             # identify individual rpcs
             station = int(rpc[-1])
-            if station not in range(1, 6):  # limiting the range of rpcs
+            if station not in list(range(1, 6)):  # limiting the range of rpcs
                 print("WARNING: Invalid RPC number, something's wrong with the geometry ",station)
 
             # calculate strip
@@ -203,7 +208,7 @@ class MufluxDigiReco:
             # sampling number of strips around the exact strip for emulating clustering
             if fake_clustering:
                 s = np.random.poisson(3)
-                strip = strip - int(s/2)
+                strip = strip - int(old_div(s,2))
                 for i in range(0, s):
                     detectorid = station*10000 + direction*1000 + strip + i
                     DetectorID.add(detectorid)
@@ -219,7 +224,7 @@ class MufluxDigiReco:
             # sampling number of strips around the exact strip for emulating clustering
             if fake_clustering:
                 s = np.random.poisson(3)
-                strip = strip - int(s/2)
+                strip = strip - int(old_div(s,2))
                 for i in range(0, s):
                     detectorid = station*10000 + direction*1000 + strip + i
                     DetectorID.add(detectorid)
@@ -333,19 +338,19 @@ class MufluxDigiReco:
             if not aDigi.isValid: continue
             detID = aDigi.GetDetectorID()
             # don't use hits from straw veto
-            station = int(detID/10000000)
+            station = int(old_div(detID,10000000))
             if station > 4 : continue
             aDigi.MufluxSpectrometerEndPoints(start,stop)
             # MufluxSpectrometerHit::MufluxSpectrometerEndPoints(TVector3 &vbot, TVector3 &vtop)
-            delt1 = (start[2]-z1)/u.speedOfLight
+            delt1 = old_div((start[2]-z1),u.speedOfLight)
             t0+=aDigi.GetDigi()-delt1
             SmearedHits.append( {'digiHit':key,'xtop':stop.x(),'ytop':stop.y(),'z':stop.z(),'xbot':start.x(),'ybot':start.y(),'dist':aDigi.GetDigi(), 'detID':detID} )
             n+=1
         if n>0:
-            t0 = t0/n - 73.2*u.ns
+            t0 = old_div(t0,n) - 73.2*u.ns
             print("t0 ",t0)
         for s in SmearedHits:
-            delt1 = (s['z']-z1)/u.speedOfLight
+            delt1 = old_div((s['z']-z1),u.speedOfLight)
             s['dist'] = (s['dist'] -delt1 -t0)*v_drift
             print("s['dist']",s['dist'])
         return SmearedHits
@@ -380,10 +385,10 @@ class MufluxDigiReco:
     def stationInfo(self, hit):
         # Taken from charmdet/drifttubeMonitoring.py
         detid = hit.GetDetectorID()
-        statnb = detid/10000000;
-        vnb =  (detid - statnb*10000000)/1000000
-        pnb =  (detid - statnb*10000000 - vnb*1000000)/100000
-        lnb =  (detid - statnb*10000000 - vnb*1000000 - pnb*100000)/10000
+        statnb = old_div(detid,10000000);
+        vnb =  old_div((detid - statnb*10000000),1000000)
+        pnb =  old_div((detid - statnb*10000000 - vnb*1000000),100000)
+        lnb =  old_div((detid - statnb*10000000 - vnb*1000000 - pnb*100000),10000)
         view = "_x"
         if vnb==0 and statnb==2: view = "_v"
         if vnb==1 and statnb==1: view = "_u"
@@ -435,7 +440,7 @@ class MufluxDigiReco:
             p1p2 = {1:[688.,7.01],2:[688.,7.01],3:[923.,4.41],4:[819.,0.995]}
             t0_corr = max(0,t-tMinAndTmax[s][0])
             tmp1 = ROOT.TMath.Sqrt(p1p2[s][0]**2+4.*p1p2[s][1]*t0_corr)
-            r = (2*tmp1-2*p1p2[s][0]+p1p2[s][0]*ROOT.TMath.Log(-p1p2[s][0]+2*tmp1)-p1p2[s][0]*ROOT.TMath.Log(p1p2[s][0]) )/(8*p1p2[s][1])
+            r = old_div((2*tmp1-2*p1p2[s][0]+p1p2[s][0]*ROOT.TMath.Log(-p1p2[s][0]+2*tmp1)-p1p2[s][0]*ROOT.TMath.Log(p1p2[s][0]) ),(8*p1p2[s][1]))
         else:
             if t > tMinAndTmax[s][1]: r = R
             elif t< tMinAndTmax[s][0]: r = 0
@@ -461,7 +466,7 @@ class MufluxDigiReco:
             # distance to wire.
             # dist  = ahit.GetDigi() * 3.7 / (2000. * 2.)
             tdc = ahit.GetDigi()
-            dist = self.RT(ahit.GetDetectorID()/10000000, tdc)
+            dist = self.RT(old_div(ahit.GetDetectorID(),10000000), tdc)
 
             SmearedHits.append( {'digiHit':key,'xtop':top.x(),'ytop':top.y(),'z':top.z(),'xbot':bot.x(),'ybot':bot.y(),'dist':dist, 'detID':detID} )
 
@@ -641,33 +646,33 @@ class MufluxDigiReco:
             min_hits = 3
 
         if mode == 'all' or mode == '3hits':
-            for key in n_true_track_hits_y12.keys():
+            for key in list(n_true_track_hits_y12.keys()):
                 if n_true_track_hits_y12[key] >= min_hits:
                     true_track_ids_y12.append(key)
 
-            for key in n_true_track_hits_stereo12.keys():
+            for key in list(n_true_track_hits_stereo12.keys()):
                 if n_true_track_hits_stereo12[key] >= min_hits:
                     true_track_ids_stereo12.append(key)
 
-            for key in n_true_track_hits_34.keys():
+            for key in list(n_true_track_hits_34.keys()):
                 if n_true_track_hits_34[key] >= min_hits:
                     true_track_ids_34.append(key)
 
         if mode == 'Tr4':
             min_hits = 1
-            for key in n_true_track_hits_y12.keys():
+            for key in list(n_true_track_hits_y12.keys()):
                 if key in n_true_track_hits_1 and key in n_true_track_hits_2:
                     if key in n_true_track_hits_3 and key in n_true_track_hits_4:
                         if n_true_track_hits_y12[key] >= min_hits:
                             true_track_ids_y12.append(key)
 
-            for key in n_true_track_hits_stereo12.keys():
+            for key in list(n_true_track_hits_stereo12.keys()):
                 if key in n_true_track_hits_1 and key in n_true_track_hits_2:
                     if key in n_true_track_hits_3 and key in n_true_track_hits_4:
                         if n_true_track_hits_stereo12[key] >= min_hits:
                             true_track_ids_stereo12.append(key)
 
-            for key in n_true_track_hits_34.keys():
+            for key in list(n_true_track_hits_34.keys()):
                 if key in n_true_track_hits_1 and key in n_true_track_hits_2:
                     if key in n_true_track_hits_3 and key in n_true_track_hits_4:
                         if n_true_track_hits_34[key] >= min_hits:
@@ -683,7 +688,7 @@ class MufluxDigiReco:
         found_track_ids_stereo12 = []
         found_track_ids_34 = []
 
-        for i_track in track_hit_ids.keys():
+        for i_track in list(track_hit_ids.keys()):
 
             atrack = track_hit_ids[i_track]
             atrack_y12 = atrack['y12']
@@ -796,7 +801,7 @@ class MufluxDigiReco:
                     n_true_track_hits_34[track_id] = 1
 
         min_hits = 3
-        for key in n_true_track_hits_y12.keys():
+        for key in list(n_true_track_hits_y12.keys()):
             if n_true_track_hits_y12[key] >= min_hits:
                 if key in n_true_track_hits_stereo12:
                     if n_true_track_hits_stereo12[key] >= min_hits:
@@ -808,7 +813,7 @@ class MufluxDigiReco:
 
         found_track_ids = []
 
-        for i_track in track_hit_ids.keys():
+        for i_track in list(track_hit_ids.keys()):
 
             atrack = track_hit_ids[i_track]
             atrack_y12 = atrack['y12']
@@ -880,7 +885,7 @@ class MufluxDigiReco:
         found_track_ids = []
         min_hits = 3
 
-        for i_track in track_hit_ids.keys():
+        for i_track in list(track_hit_ids.keys()):
 
             atrack = track_hit_ids[i_track]
             atrack_y12 = atrack['y12']
@@ -953,7 +958,7 @@ class MufluxDigiReco:
         found_track_ids = []
         min_hits = 3
 
-        for i_track in track_hit_ids.keys():
+        for i_track in list(track_hit_ids.keys()):
 
             atrack = track_hit_ids[i_track]
             atrack_y12 = atrack['y12']
@@ -1035,7 +1040,7 @@ class MufluxDigiReco:
         found_track_ids = []
         min_hits = 3
 
-        for i_track in track_hit_ids.keys():
+        for i_track in list(track_hit_ids.keys()):
 
             atrack = track_hit_ids[i_track]
             atrack_y12 = atrack['y12']
@@ -1115,7 +1120,7 @@ class MufluxDigiReco:
         found_track_ids = []
         min_hits = 3
 
-        for i_track in track_hit_ids.keys():
+        for i_track in list(track_hit_ids.keys()):
 
             atrack = track_hit_ids[i_track]
             atrack_y12 = atrack['y12']
@@ -1212,7 +1217,7 @@ class MufluxDigiReco:
             track_hits = MufluxPatRec.execute(self.SmearedHits, self.TaggerHits, withNTaggerHits, withDist2Wire)
 
             # Create hitPosLists for track fit
-            for i_track in track_hits.keys():
+            for i_track in list(track_hits.keys()):
 
                 atrack = track_hits[i_track]
                 atrack_y12 = atrack['y12']
@@ -1227,7 +1232,7 @@ class MufluxDigiReco:
 
                     # detID = self.digiMufluxSpectrometer[sm['digiHit']].GetDetectorID()
                     detID = sm['detID']
-                    station = int(detID/10000000)
+                    station = int(old_div(detID,10000000))
                     trID = i_track
 
                     # T1-4 for track fit
@@ -1244,7 +1249,7 @@ class MufluxDigiReco:
                     trackDigiHits[trID].append(sm['digiHit'])
 
                     # T1-3 for track fit
-                    if (int(detID/1000000)!=40):
+                    if (int(old_div(detID,1000000))!=40):
                         if trID not in hitPosLists_noT4:
                             hitPosLists_noT4[trID]     = ROOT.std.vector('TVectorD')()
                             stationCrossed_noT4[trID]  = {}
@@ -1269,7 +1274,7 @@ class MufluxDigiReco:
 
                 # detID = self.digiMufluxSpectrometer[sm['digiHit']].GetDetectorID()
                 detID = sm['detID']
-                station = int(detID/10000000)
+                station = int(old_div(detID,10000000))
                 vnb = (detID - station * 10000000) // 1000000
                 is_y12 = (station == 1) * (vnb == 0) + (station == 2) * (vnb == 1)
                 is_stereo12 = (station == 1) * (vnb == 1) + (station == 2) * (vnb == 0)
@@ -1302,7 +1307,7 @@ class MufluxDigiReco:
                 trackDigiHits[trID].append(sm['digiHit'])
 
                 # T1-3 for track fit
-                if (int(detID/1000000)!=40):
+                if (int(old_div(detID,1000000))!=40):
                     if trID not in hitPosLists_noT4:
                         hitPosLists_noT4[trID] = ROOT.std.vector('TVectorD')()
                         stationCrossed_noT4[trID]  = {}
@@ -1334,7 +1339,7 @@ class MufluxDigiReco:
             #if len(stationCrossed[atrack]) < 4 :
             #    continue  # not enough stations crossed to make a good trackfit
 
-            charge = self.PDG.GetParticle(pdg).Charge()/(3.)
+            charge = old_div(self.PDG.GetParticle(pdg).Charge(),(3.))
             posM = ROOT.TVector3(0, 0, 0)
             momM = ROOT.TVector3(0,0,mom_init * u.GeV)
             # approximate covariance
@@ -1346,7 +1351,7 @@ class MufluxDigiReco:
                 covM[i][i] = resolution*resolution
             covM[0][0]=resolution*resolution*100.
             for i in range(3,6):
-                covM[i][i] = ROOT.TMath.Power(resolution / nM / ROOT.TMath.Sqrt(3), 2)
+                covM[i][i] = ROOT.TMath.Power(old_div(resolution, nM / ROOT.TMath.Sqrt(3)), 2)
             # trackrep
             rep = ROOT.genfit.RKTrackRep(pdg)
             # smeared start state
@@ -1387,7 +1392,7 @@ class MufluxDigiReco:
             if len(stationCrossed[atrack]) < 4 :
                 continue  # not enough stations crossed to make a good trackfit
 
-            charge = self.PDG.GetParticle(pdg).Charge()/(3.)
+            charge = old_div(self.PDG.GetParticle(pdg).Charge(),(3.))
             posM = ROOT.TVector3(0, 0, 0)
             momM = ROOT.TVector3(0,0,mom_init * u.GeV)
             # approximate covariance
@@ -1399,7 +1404,7 @@ class MufluxDigiReco:
                 covM[i][i] = resolution*resolution
             covM[0][0]=resolution*resolution*100.
             for i in range(3,6):
-                covM[i][i] = ROOT.TMath.Power(resolution / nM / ROOT.TMath.Sqrt(3), 2)
+                covM[i][i] = ROOT.TMath.Power(old_div(resolution, nM / ROOT.TMath.Sqrt(3)), 2)
             # trackrep
             rep = ROOT.genfit.RKTrackRep(pdg)
             # smeared start state
@@ -1438,7 +1443,7 @@ class MufluxDigiReco:
             if len(stationCrossed[atrack]) < 3 :
                 continue  # not enough stations crossed to make a good trackfit
 
-            charge = self.PDG.GetParticle(pdg).Charge()/(3.)
+            charge = old_div(self.PDG.GetParticle(pdg).Charge(),(3.))
             posM = ROOT.TVector3(0, 0, 0)
             momM = ROOT.TVector3(0,0,mom_init * u.GeV)
             # approximate covariance
@@ -1450,7 +1455,7 @@ class MufluxDigiReco:
                 covM[i][i] = resolution*resolution
             covM[0][0]=resolution*resolution*100.
             for i in range(3,6):
-                covM[i][i] = ROOT.TMath.Power(resolution / nM / ROOT.TMath.Sqrt(3), 2)
+                covM[i][i] = ROOT.TMath.Power(old_div(resolution, nM / ROOT.TMath.Sqrt(3)), 2)
             # trackrep
             rep = ROOT.genfit.RKTrackRep(pdg)
             # smeared start state
@@ -1478,7 +1483,7 @@ class MufluxDigiReco:
             x_hits_y = []
             for ahit in self.SmearedHits:
                 detID = ahit['detID']
-                station = int(detID/10000000)
+                station = int(old_div(detID,10000000))
                 vnb = (detID - station * 10000000) // 1000000
                 is_y12 = (station == 1) * (vnb == 0) + (station == 2) * (vnb == 1)
                 is_stereo12 = (station == 1) * (vnb == 1) + (station == 2) * (vnb == 0)
@@ -1521,7 +1526,7 @@ class MufluxDigiReco:
             plt.subplot(1, 2, 2)
             for ahit in self.SmearedHits:
                 detID = ahit['detID']
-                station = int(detID/10000000)
+                station = int(old_div(detID,10000000))
                 vnb = (detID - station * 10000000) // 1000000
                 is_y12 = (station == 1) * (vnb == 0) + (station == 2) * (vnb == 1)
                 is_stereo12 = (station == 1) * (vnb == 1) + (station == 2) * (vnb == 0)
@@ -1705,17 +1710,17 @@ class MufluxDigiReco:
                     else:
                         n_true_track_hits_34[track_id] = 1
 
-            for key in n_true_track_hits_y12.keys():
+            for key in list(n_true_track_hits_y12.keys()):
                 n = n_true_track_hits_y12[key]
                 h['NHits_true_y12'].Fill(n)
-            for key in n_true_track_hits_stereo12.keys():
+            for key in list(n_true_track_hits_stereo12.keys()):
                 n = n_true_track_hits_stereo12[key]
                 h['NHits_true_stereo12'].Fill(n)
-            for key in n_true_track_hits_34.keys():
+            for key in list(n_true_track_hits_34.keys()):
                 n = n_true_track_hits_34[key]
                 h['NHits_true_34'].Fill(n)
 
-        for i_track in track_hits.keys():
+        for i_track in list(track_hits.keys()):
             atrack = track_hits[i_track]
             atrack_y12 = atrack['y12']
             atrack_stereo12 = atrack['stereo12']
@@ -1750,7 +1755,7 @@ class MufluxDigiReco:
                 continue
             fitStatus   = theTrack.getFitStatus()
             nmeas = fitStatus.getNdf()
-            chi2        = fitStatus.getChi2()/nmeas
+            chi2        = old_div(fitStatus.getChi2(),nmeas)
             pvalue = fitStatus.getPVal()
             #if pvalue < 0.05:
             #  print "P value too low. Rejecting track."
@@ -1781,8 +1786,8 @@ class MufluxDigiReco:
                     Pgun,Pgunx,Pguny,Pgunz = self.getPtruthAtOrigin(tmax) # MC Truth
                     Pttruth = ROOT.TMath.Sqrt(Ptruthx*Ptruthx+Ptruthy*Ptruthy)
                     h['p/pt_truth'].Fill(Ptruth,Pttruth)
-                    perr = (P - Ptruth) / Ptruth
-                    pterr = (Pt - Pttruth) / Pttruth
+                    perr = old_div((P - Ptruth), Ptruth)
+                    pterr = old_div((Pt - Pttruth), Pttruth)
                     h['p_rel_error'].Fill(perr)
                     h['pt_rel_error'].Fill(pterr)
 
@@ -1790,11 +1795,11 @@ class MufluxDigiReco:
                     print("P_precalc, P_truth: ", mom_init, Ptruth)
 
                     if Pz !=0:
-                        pxpzfitted = Px/Pz
-                        pypzfitted = Py/Pz
+                        pxpzfitted = old_div(Px,Pz)
+                        pypzfitted = old_div(Py,Pz)
                         if Ptruthz !=0:
-                            pxpztrue = Ptruthx/Ptruthz
-                            pypztrue = Ptruthy/Ptruthz
+                            pxpztrue = old_div(Ptruthx,Ptruthz)
+                            pypztrue = old_div(Ptruthy,Ptruthz)
                             h['Px/Pzfitted'].Fill(pxpzfitted)
                             h['Py/Pzfitted'].Fill(pypzfitted)
                             h['Px/Pztrue'].Fill(pxpztrue)
@@ -1802,8 +1807,8 @@ class MufluxDigiReco:
                             h['Px/Pzfitted-Px/Pztruth'].Fill(Ptruth,pxpzfitted-pxpztrue)
                             h['Py/Pzfitted-Py/Pztruth'].Fill(Ptruth,pypzfitted-pypztrue)
                     h['ptruth'].Fill(Ptruth)
-                    delPOverP = (P/Ptruth)-1
-                    invdelPOverP = (Ptruth/P)-1
+                    delPOverP = (old_div(P,Ptruth))-1
+                    invdelPOverP = (old_div(Ptruth,P))-1
                     if 1==0:
                         if invdelPOverP < -0.8:
                             print("invdelPOverP = ",invdelPOverP)
@@ -1847,7 +1852,7 @@ class MufluxDigiReco:
                 continue
             fitStatus   = theTrack.getFitStatus()
             nmeas = fitStatus.getNdf()
-            chi2        = fitStatus.getChi2()/nmeas
+            chi2        = old_div(fitStatus.getChi2(),nmeas)
             pvalue = fitStatus.getPVal()
             #if pvalue < 0.05:
             #  print "P value too low. Rejecting track."
@@ -1879,17 +1884,17 @@ class MufluxDigiReco:
                     Pgun,Pgunx,Pguny,Pgunz = self.getPtruthAtOrigin(tmax)
                     Pttruth = ROOT.TMath.Sqrt(Ptruthx*Ptruthx+Ptruthy*Ptruthy)
                     h['p/pt_truth_noT4'].Fill(Ptruth,Pttruth)
-                    perr = (P - Ptruth) / Ptruth
-                    pterr = (Pt - Pttruth) / Pttruth
+                    perr = old_div((P - Ptruth), Ptruth)
+                    pterr = old_div((Pt - Pttruth), Pttruth)
                     h['p_rel_error_noT4'].Fill(perr)
                     h['pt_rel_error_noT4'].Fill(pterr)
 
                     if Pz !=0:
-                        pxpzfitted = Px/Pz
-                        pypzfitted = Py/Pz
+                        pxpzfitted = old_div(Px,Pz)
+                        pypzfitted = old_div(Py,Pz)
                         if Ptruthz !=0:
-                            pxpztrue = Ptruthx/Ptruthz
-                            pypztrue = Ptruthy/Ptruthz
+                            pxpztrue = old_div(Ptruthx,Ptruthz)
+                            pypztrue = old_div(Ptruthy,Ptruthz)
                             h['Px/Pzfitted-Px/Pztruth-noT4'].Fill(Ptruth,pxpzfitted-pxpztrue)
                             h['Py/Pzfitted-Py/Pztruth-noT4'].Fill(Ptruth,pypzfitted-pypztrue)
                             h['Px/Pzfitted-noT4'].Fill(pxpzfitted)
@@ -1898,8 +1903,8 @@ class MufluxDigiReco:
                             h['Py/Pztrue-noT4'].Fill(pypztrue)
 
                     h['ptruth-noT4'].Fill(Ptruth)
-                    delPOverP = (P/Ptruth)-1
-                    invdelPOverP = (Ptruth/P)-1
+                    delPOverP = (old_div(P,Ptruth))-1
+                    invdelPOverP = (old_div(Ptruth,P))-1
                     h['delPOverP-noT4'].Fill(Ptruth,delPOverP)
                     h['invdelPOverP-noT4'].Fill(Ptruth,invdelPOverP)
                     h['deltaPOverP-noT4'].Fill(Ptruth,delPOverP)
@@ -1929,7 +1934,7 @@ class MufluxDigiReco:
                 continue
             fitStatus   = theTrack.getFitStatus()
             nmeas = fitStatus.getNdf()
-            chi2        = fitStatus.getChi2()/nmeas
+            chi2        = old_div(fitStatus.getChi2(),nmeas)
             pvalue = fitStatus.getPVal()
             #if pvalue < 0.05:
             #  print "P value too low. Rejecting track."
@@ -1961,17 +1966,17 @@ class MufluxDigiReco:
                     Pgun,Pgunx,Pguny,Pgunz = self.getPtruthAtOrigin(tmax)
                     Pttruth = ROOT.TMath.Sqrt(Ptruthx*Ptruthx+Ptruthy*Ptruthy)
                     h['p/pt_truth_all'].Fill(Ptruth,Pttruth)
-                    perr = (P - Ptruth) / Ptruth
-                    pterr = (Pt - Pttruth) / Pttruth
+                    perr = old_div((P - Ptruth), Ptruth)
+                    pterr = old_div((Pt - Pttruth), Pttruth)
                     h['p_rel_error_all'].Fill(perr)
                     h['pt_rel_error_all'].Fill(pterr)
 
                     if Pz !=0:
-                        pxpzfitted = Px/Pz
-                        pypzfitted = Py/Pz
+                        pxpzfitted = old_div(Px,Pz)
+                        pypzfitted = old_div(Py,Pz)
                         if Ptruthz !=0:
-                            pxpztrue = Ptruthx/Ptruthz
-                            pypztrue = Ptruthy/Ptruthz
+                            pxpztrue = old_div(Ptruthx,Ptruthz)
+                            pypztrue = old_div(Ptruthy,Ptruthz)
                             h['Px/Pzfitted-Px/Pztruth-all'].Fill(Ptruth,pxpzfitted-pxpztrue)
                             h['Py/Pzfitted-Py/Pztruth-all'].Fill(Ptruth,pypzfitted-pypztrue)
                             h['Px/Pzfitted-all'].Fill(pxpzfitted)
@@ -1980,8 +1985,8 @@ class MufluxDigiReco:
                             h['Py/Pztrue-all'].Fill(pypztrue)
 
                     h['ptruth-all'].Fill(Ptruth)
-                    delPOverP = (P/Ptruth)-1
-                    invdelPOverP = (Ptruth/P)-1
+                    delPOverP = (old_div(P,Ptruth))-1
+                    invdelPOverP = (old_div(Ptruth,P))-1
                     h['delPOverP-all'].Fill(Ptruth,delPOverP)
                     h['invdelPOverP-all'].Fill(Ptruth,invdelPOverP)
                     h['deltaPOverP-all'].Fill(Ptruth,delPOverP)

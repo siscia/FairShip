@@ -1,4 +1,8 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 __author__ = 'Mikhail Hushchyn'
 
 import numpy as np
@@ -94,7 +98,7 @@ def execute(SmearedHits, TaggerHits, withNTaggerHits, withDist2Wire, debug=0):
 
     if debug:
         print("Recognized tracks:")
-        for i_track in track_hits.keys():
+        for i_track in list(track_hits.keys()):
             atrack = track_hits[i_track]
             print("Track ", i_track)
             print("Z_y12", [str(np.around(hit['z'], 2)) for hit in atrack['y12']])
@@ -345,9 +349,9 @@ def combine_tracks_before_and_after_the_magnet(short_tracks_12, short_tracks_34,
             if i_12 not in used_12:
                 if i_34 not in used_34:
                     atrack = {}
-                    for key in short_tracks_12[i_12].keys():
+                    for key in list(short_tracks_12[i_12].keys()):
                         atrack[key+'12'] = short_tracks_12[i_12][key]
-                    for key in short_tracks_34[i_34].keys():
+                    for key in list(short_tracks_34[i_34].keys()):
                         atrack[key+'34'] = short_tracks_34[i_34][key]
                     atrack['p'] = abs(mom)
                     track_combinations.append(atrack)
@@ -482,7 +486,7 @@ def get_zy_projection(z, xtop, ytop, xbot, ybot, k_y, b_y):
 
     x = k_y * z + b_y
 
-    k = (ytop - ybot) / (xtop - xbot + 10**-6)
+    k = old_div((ytop - ybot), (xtop - xbot + 10**-6))
     b = ytop - k * xtop
     y = k * x + b
 

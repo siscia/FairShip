@@ -1,4 +1,6 @@
 from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 import ROOT,os,sys,getopt,math
 import shipunit as u
 import proton_bremsstrahlung
@@ -43,7 +45,7 @@ def mesonBRtoPhoton(mumPdg,doprint=False):
 def brMesonToGammaDP(mass,epsilon,mumPdg,doprint=False):
     mMeson = PDG.GetParticle(mumPdg).Mass()
     if (doprint==True): print("Mass of mother %d meson is %3.3f"%(mumPdg,mMeson))
-    if (mass<mMeson): br = 2*epsilon**2*pow((1-mass**2/mMeson**2),3)*mesonBRtoPhoton(mumPdg,doprint)
+    if (mass<mMeson): br = 2*epsilon**2*pow((1-old_div(mass**2,mMeson**2)),3)*mesonBRtoPhoton(mumPdg,doprint)
     else: br = 0
     if (doprint==True): print("Branching ratio of %d meson to DP is %.8g"%(mumPdg,br))
     return br
@@ -56,7 +58,7 @@ def brMesonToMesonDP(mass,epsilon,mumPdg,dauPdg,doprint=False):
     fac1 = (mMeson**2-mass**2-mDaughterMeson**2)**2
     fac2 = ROOT.TMath.Sqrt((mMeson**2-mass**2+mDaughterMeson**2)**2 - 4*mMeson**2*mDaughterMeson**2)
     fac3 = pow(mMeson**2-mass**2,3)
-    massfactor = fac1*fac2/fac3
+    massfactor = old_div(fac1*fac2,fac3)
     if (mass<(mMeson-mDaughterMeson)): br = epsilon**2*mesonBRtoPhoton(mumPdg,doprint)*massfactor
     else: br = 0
     if (doprint==True): print("Branching ratio of %d meson to DP is %.8g"%(mumPdg,br))

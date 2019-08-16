@@ -1,5 +1,8 @@
 from __future__ import print_function
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 import os,subprocess,ROOT,time,multiprocessing
 from rootpyPickler import Unpickler
 from rootpyPickler import Pickler
@@ -47,7 +50,7 @@ def getFilesFromEOS():
         rc = os.system("xrdcp -f $EOSSHIP"+fname+" "+newName)
         tmp[newName]=fileList[fname]
 
-    fnames = tmp.keys()
+    fnames = list(tmp.keys())
     fnames.sort()
     return tmp,fnames
 
@@ -69,7 +72,7 @@ def getFilesLocal():
 
     Nfiles = len(fileList)
 
-    fnames = fileList.keys()
+    fnames = list(fileList.keys())
     fnames.sort()
     return fileList,fnames
 
@@ -249,7 +252,7 @@ def checkFilesWithTracks3(D='.'):
                 continue
             b = sTree.GetBranch("FitTracks")
             if b:
-                if b.GetZipBytes()/1.E6 < 1.: badFile[x]= b.GetZipBytes()/1.E6
+                if old_div(b.GetZipBytes(),1.E6) < 1.: badFile[x]= old_div(b.GetZipBytes(),1.E6)
     return badFile
 # for f in bf: os.system('cp ../../ship-ubuntu-1710-64/RUN_8000_2395/'+f+' .')
 
@@ -464,7 +467,7 @@ def pot():
             if name!='slices':
                 if name not in scalerStat:scalerStat[name]=0
                 scalerStat[name]+=s
-    keys = scalerStat.keys()
+    keys = list(scalerStat.keys())
     keys.sort()
     for k in keys: print(k,':',scalerStat[k])
 

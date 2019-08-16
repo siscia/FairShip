@@ -1,4 +1,8 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import ROOT,os,random
 import shipunit as u
 import rootUtils as ut
@@ -175,7 +179,7 @@ def mergeMinBias(pot,norm=5.E13,opt=''):
                 vlist.append( leaves.At(x).GetValue() )
             if len(vlist) != 11 : 
                 print("this should never happen, big error",len(vlist),k,p,iev,nev)
-                1/0
+                old_div(1,0)
             # "id:px:py:pz:x:y:z:pythiaid:parentid:w:ecut"
             # yandex productions have
             # "id:px:py:pz:x:y:z:ox:oy:oz:pythiaid:parentid:w:ecut"       
@@ -195,15 +199,15 @@ def mergeMinBias(pot,norm=5.E13,opt=''):
             # E < 1 GeV & E > 0.5 GeV 
             #   w = norm/( productions["Yandex"][0.5]  )
             if Ekin > 100. :
-                vlist[9] = norm/( pot["CERN-Cracow"][100.] + pot["Yandex"][5.] + pot["Yandex2"][10.] )
+                vlist[9] = old_div(norm,( pot["CERN-Cracow"][100.] + pot["Yandex"][5.] + pot["Yandex2"][10.] ))
             elif Ekin > 10.   :  
-                vlist[9] = norm/( pot["CERN-Cracow"][10.] + pot["Yandex"][5.] + pot["Yandex2"][10.] )
+                vlist[9] = old_div(norm,( pot["CERN-Cracow"][10.] + pot["Yandex"][5.] + pot["Yandex2"][10.] ))
             elif Ekin > 5.   :  
-                vlist[9] = norm/( pot["CERN-Cracow"][1.] + pot["Yandex"][5.]  )
+                vlist[9] = old_div(norm,( pot["CERN-Cracow"][1.] + pot["Yandex"][5.]  ))
             elif Ekin > 1.   :  
-                vlist[9] = norm/( pot["CERN-Cracow"][1.] + pot["Yandex"][0.5]  )
+                vlist[9] = old_div(norm,( pot["CERN-Cracow"][1.] + pot["Yandex"][0.5]  ))
             elif Ekin > 0.5  :  
-                vlist[9] = norm/( pot["Yandex"][0.5]  )
+                vlist[9] = old_div(norm,( pot["Yandex"][0.5]  ))
             else   :  
                 print("this should not happen, except some rounding errors",p,Ekin,vlist[9])
 # scoring plane, g4Ex_gap:   afterHadronZ = z0Pos+targetL+absorberL+5.1*cm  
@@ -223,7 +227,7 @@ def runProduction(opts=''):
     for p in we:
         pot[p]={}
         for w in we[p]:
-            pot[p][we[p][w][0]] = 5.E13/w
+            pot[p][we[p][w][0]] = old_div(5.E13,w)
     print("pots:",pot)
     #
     mergeMinBias(pot,norm=5.E13,opt=opts)

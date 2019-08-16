@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import ROOT,os
 import shipunit as u
 from ShipGeoConfig import AttrDict,ConfigRegistry
@@ -85,7 +89,7 @@ def configure(run,ship_geo):
     if not hasattr(ship_geo,'NuTauTT') : ship_geo.NuTauTT= AttrDict(z=0*u.cm)
     if not hasattr(ship_geo.NuTauTT,'design') : ship_geo.NuTauTT.design = 0
     if not hasattr(ship_geo,'EcalOption'):     ship_geo.EcalOption = 1      
-    latestShipGeo = ConfigRegistry.loadpy("$FAIRSHIP/geometry/geometry_config.py",Yheight = ship_geo.Yheight/u.m, tankDesign = ship_geo.tankDesign, muShieldDesign = ship_geo.muShieldDesign, nuTauTargetDesign = ship_geo.nuTauTargetDesign, muShieldGeo = ship_geo.muShieldGeo)
+    latestShipGeo = ConfigRegistry.loadpy("$FAIRSHIP/geometry/geometry_config.py",Yheight = old_div(ship_geo.Yheight,u.m), tankDesign = ship_geo.tankDesign, muShieldDesign = ship_geo.muShieldDesign, nuTauTargetDesign = ship_geo.nuTauTargetDesign, muShieldGeo = ship_geo.muShieldGeo)
 # -----Create media-------------------------------------------------
     run.SetMaterials("media.geo")  # Materials
 # ------------------------------------------------------------------------
@@ -180,9 +184,9 @@ def configure(run,ship_geo):
     Veto.SetFloorHeight(ship_geo.cave.floorHeightTankA,ship_geo.cave.floorHeightTankB)
     if ship_geo.tankDesign > 4: 
         dzX = ship_geo.zFocusX+ship_geo.target.z0    
-        x1  = ship_geo.xMax/(ship_geo.Chamber1.z -ship_geo.chambers.Tub1length-dzX)*(ship_geo.TrackStation4.z-dzX)
+        x1  = old_div(ship_geo.xMax,(ship_geo.Chamber1.z -ship_geo.chambers.Tub1length-dzX)*(ship_geo.TrackStation4.z-dzX))
         dzY = ship_geo.zFocusY+ship_geo.target.z0    
-        y1  = ship_geo.Yheight/(ship_geo.Chamber1.z -ship_geo.chambers.Tub1length-dzY)*(ship_geo.TrackStation4.z-dzY)
+        y1  = old_div(ship_geo.Yheight,(ship_geo.Chamber1.z -ship_geo.chambers.Tub1length-dzY)*(ship_geo.TrackStation4.z-dzY))
         Veto.SetXYstart(x1,dzX,y1,dzY)
         Veto.SetVesselStructure(ship_geo.Veto.innerSupport,ship_geo.Veto.sensitiveThickness,ship_geo.Veto.outerSupport,\
                                 ship_geo.Veto.innerSupportMed,ship_geo.Veto.lidThickness,ship_geo.Veto.sensitiveMed,\

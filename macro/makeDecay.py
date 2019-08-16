@@ -1,6 +1,11 @@
 from __future__ import print_function
+from __future__ import division
 #Use Pythia8 to decay the signals (Charm/Beauty) as produced by makeCascade.
 #Output is an ntuple with muon/neutrinos 
+from builtins import next
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import ROOT,time,os,sys,random,getopt
 import rootUtils as ut
 ROOT.gROOT.LoadMacro("$VMCWORKDIR/gconfig/basiclibs.C")
@@ -112,7 +117,7 @@ for n in range(nEvents):
         #convert pot to weight corresponding to one spill of 5e13 pot
         print('weights: ',nrpotspill,' p.o.t. per spill')
         print('    ')
-        wspill=nrpotspill*chicc/nrcpot
+        wspill=old_div(nrpotspill*chicc,nrcpot)
     #sanity check, count number of p.o.t. on input file.
     pt=ROOT.TMath.Sqrt(sTree.mpx**2+sTree.mpy**2)
     #every event appears twice, i.e.
@@ -147,7 +152,7 @@ for n in range(nEvents):
                     h[str(idhnu+200)].Fill(l10ptot,l10pt,wspill)
 
 print('Now at Ntup.Write() for pot=',pot,nrcpot)
-if (1.-pot/nrcpot)<1.e-2:
+if (1.-old_div(pot,nrcpot))<1.e-2:
     print('write ntuple, weight/event=',nrpotspill,'x',chicc,'/',nrcpot,'=',wspill)
     Ntup.Write()
     for akey in h: h[akey].Write()

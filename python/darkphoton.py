@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import object
+from past.utils import old_div
 import math
 import os
 import ROOT as r
@@ -16,7 +19,7 @@ hGeV = 6.58211928*pow(10.,-16)* pow(10.,-9) # no units or it messes up!!
 #utilities
 # sigma(e+e- -> hadrons) / sigma(e+e- -> mu+mu-)
 
-class DarkPhoton:
+class DarkPhoton(object):
     "dark photon setup"
 
     def __init__(self, mass, eps):
@@ -81,17 +84,17 @@ class DarkPhoton:
 
         constant = (1./3.) * alphaQED * self.mDarkPhoton * pow(self.epsilon, 2.)
         if 2.*ml < self.mDarkPhoton:
-            rad = math.sqrt( 1. - (4.*ml*ml)/(self.mDarkPhoton*self.mDarkPhoton) )
+            rad = math.sqrt( 1. - old_div((4.*ml*ml),(self.mDarkPhoton*self.mDarkPhoton)) )
         else:
             rad = 0.
 
-        par = 1. + (2.*ml*ml)/(self.mDarkPhoton*self.mDarkPhoton)
+        par = 1. + old_div((2.*ml*ml),(self.mDarkPhoton*self.mDarkPhoton))
         tdw=math.fabs(constant*rad*par)
         #print 'Leptonic decay width to %s is %.3e'%(lepton,tdw)
         return tdw
 
     def leptonicBranchingRatio(self,lepton):
-        return self.leptonicDecayWidth(lepton) / self.totalDecayWidth()
+        return old_div(self.leptonicDecayWidth(lepton), self.totalDecayWidth())
 
     def hadronicDecayWidth(self):
         """ Dark photon decay into hadrons """
@@ -102,7 +105,7 @@ class DarkPhoton:
         return tdw;
 
     def hadronicBranchingRatio(self):
-        return self.hadronicDecayWidth() / self.totalDecayWidth()
+        return old_div(self.hadronicDecayWidth(), self.totalDecayWidth())
 
     def totalDecayWidth(self): # mDarkPhoton in GeV
         """ Total decay width in GeV """
@@ -118,12 +121,12 @@ class DarkPhoton:
 
     def cTau(self): # decay length in meters, dark photon mass in GeV
         """ Dark Photon lifetime in cm"""
-        ctau=hGeV*ccm/self.totalDecayWidth()
+        ctau=old_div(hGeV*ccm,self.totalDecayWidth())
         #print "ctau dp.py %.3e"%(ctau) 
         return ctau #GeV/MeV conversion
 
     def lifetime(self):
-        return cTau()/ccm
+        return old_div(cTau(),ccm)
 
     def findBranchingRatio(self,decayString):
         br = 0.

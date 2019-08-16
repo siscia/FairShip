@@ -1,4 +1,8 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import os,ROOT,sys,subprocess,pickle,time,datetime
 import rootUtils as ut
 
@@ -144,7 +148,7 @@ def addAllHistograms():
         ut.readHists(h,path+fname)
         if i==0:
             h[1012].Draw()
-    tmp = h.keys()
+    tmp = list(h.keys())
     for x in tmp:
         if h[x].GetName().find('proj')>0: rc = h.pop(x)
     ut.writeHists(h,"pythia8_Geant4_"+ecut+"_c"+str(Nmax)+"-histos.root")
@@ -170,7 +174,7 @@ def compactifyCascade(cycle):
     if cmd.find('root')<0:
         print('no file found, exit')
     else:
-        stat = str( int(Ntot/1E6))+'Mpot'
+        stat = str( int(old_div(Ntot,1E6)))+'Mpot'
         outFile = "Cascade-run"+str(cycle)+"-"+str(cycle+ncpus-1)+"-parp16-MSTP82-1-MSEL4-"+stat+".root"
         rc = os.system("hadd -O "+outFile + " " +cmd)
         rc = os.system("xrdcp "+outFile+" $EOSSHIP/eos/experiment/ship/data/Mbias/background-prod-2018/"+outFile)
@@ -311,10 +315,10 @@ def makePrintout():
         c = hbiased['pids'].GetBinContent(i)
         if c>0: p[int(hbiased['pids'].GetBinCenter(i))]=c
 
-    sorted_p = sorted(p.items(), key=operator.itemgetter(1))
+    sorted_p = sorted(list(p.items()), key=operator.itemgetter(1))
     for p in sorted_p:
         print("%25s : %5.2G"%(pdg.GetParticle(p[0]).GetName(),float(p[1])))
-    sorted_pr = sorted(biased.items(), key=operator.itemgetter(1))
+    sorted_pr = sorted(list(biased.items()), key=operator.itemgetter(1))
     print("origin of muons")
     for p in sorted_pr:
         if not p[0].find('Hadronic inelastic')<0:
